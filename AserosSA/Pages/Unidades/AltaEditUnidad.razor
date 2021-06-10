@@ -1,0 +1,88 @@
+﻿@page "/unidad"
+@page "/unidad/{id:int}"
+@inject IJSRuntime JsRuntime
+@inject NavigationManager NavigationManager
+@inject ModalService _modalService
+@inject MessageService _message
+
+
+<div class="rounded w-75 bg-light mx-auto" style="margin:15px;">
+    <h3 class="text-center">Unidad</h3>
+    <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-10">
+            <table class="table">
+                <tbody>
+                    <tr>
+                        <td colspan="3">
+                            <label>Nombre de Unidad: </label>
+                            <input type="text" class="form-control" aria-label="">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Simbolo de Unidad: </label>
+                            <input type="text" class="form-control" aria-label="">
+                        </td>
+                        
+
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col-sm-11" style="text-align:right;">
+            <Button Type="primary" @onclick="savedMessage">@saveValue</Button>
+            <Button Type="default" @onclick="cancel" Danger>Cancelar</Button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+
+    public String saveValue { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (id != 0)
+        {
+            saveValue = "Editar";
+        }
+        else
+        {
+            saveValue = "Guardar";
+        }
+
+    }
+
+    public async Task savedMessage()
+    {
+        if (id != 0)
+            await JsRuntime.InvokeAsync<object>(identifier: "swal", "Editar", "Unidad Editada correctamente");
+        else
+            await JsRuntime.InvokeAsync<object>(identifier: "swal", "Guardar", "Unidad Guardada correctamente");
+
+        NavigationManager.NavigateTo("/listadoUnidades");
+    }
+
+
+    public async Task cancel()
+    {
+        //await JsRuntime.InvokeAsync<string>(identifier: "cancelSwal");
+        var isTrue = await _modalService.ConfirmAsync(new ConfirmOptions()
+        {
+            Title = "Cancelar",
+            Icon =@<Icon Type="exclamation-circle" Theme="Outline"></Icon>,
+            Content = "Seguro que deseas cancelar",
+            OkText = "Si",
+            CancelText = "Cancelar"
+        });
+
+        if (isTrue)
+        NavigationManager.NavigateTo("/listaHistoriaUsuario");
+
+    }
+}
+

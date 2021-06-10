@@ -1,0 +1,126 @@
+﻿@page "/listadoUnidades"
+@inject IJSRuntime JsRuntime
+@using System.ComponentModel
+
+
+<div class="col-sm-12" style="text-align:center;margin-top:10px;">
+    <h3>Unidades</h3>
+</div>
+<div>
+    <Row Style="margin-bottom:10px;">
+        <Col Span="9" Offset="12">
+        <Search EnterButton="true" OnSearch="buscar" @bind-Value="@txtValue" Placeholder="Unidad" />
+        </Col>
+        <Col Span="3">
+        <div style="text-align:right; width:87%;">
+            <a href="/unidad" title="Nuevo"><i style="margin-right:5px;">Agregar</i><span class="oi oi-plus"></span></a>
+        </div>
+        </Col>
+    </Row>
+</div>
+
+
+<Table @ref="table"
+       TItem="Unidades"
+       DataSource="@unidades"
+       Total="_total"
+       @bind-PageIndex="_pageIndex"
+       @bind-PageSize="_pageSize"
+       @bind-SelectedRows="selectedRows">
+
+    <Selection Key="@(context.Id.ToString())" />
+
+    <AntDesign.Column @bind-Field="@context.Id" Sortable />
+    <AntDesign.Column @bind-Field="@context.Nombre" Sortable />
+    <AntDesign.Column @bind-Field="@context.Simbolo" Sortable />
+
+    <ActionColumn>
+        <Space>
+            <a href="/unidad/1" title="Editar">
+                <span class="oi oi-pencil"></span>
+            </a>
+        </Space>
+    </ActionColumn>
+    <ActionColumn>
+        <Space>
+            <a title="Eliminar" @onclick="Eliminar">
+                <span class="oi oi-trash"></span>
+            </a>
+        </Space>
+    </ActionColumn>
+</Table>
+
+<br />
+<p>Página: @_pageIndex | Registros: @_pageSize | Total: @_total</p>
+
+
+
+
+
+@code {
+
+    Unidades[] unidades;
+
+    IEnumerable<Unidades> selectedRows;
+    ITable table;
+
+    int _pageIndex = 1;
+    int _pageSize = 5;
+    int _total = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        unidades = await GetForecastAsync(_pageIndex, _pageSize);
+        _total = unidades.Length;
+    }
+
+    public class Unidades
+    {
+        public int Id { get; set; }
+
+        [DisplayName("Nombre")]
+        public string? Nombre { get; set; }
+
+        [DisplayName("Simbolo")]
+        public string Simbolo { get; set; }
+
+    }
+
+    private static readonly string[] Nombres = new[]
+    {
+        "Kilogramo", "Litro", "Metro", "Tonelada", "Libra", "Yarda", "Pie", "Pulgada", "Vara", "Milla", "Onza"
+    };
+    private static readonly string[] Simbolos = new[]
+    {
+        "KG", "L", "M",  "Ton", "Lb", "yard",  "foot", "inch", "rod", "mile", "ounce"
+    };
+
+    public Task<Unidades[]> GetForecastAsync(int pageIndex, int pageSize)
+    {
+        var rng = new Random();
+        return Task.FromResult(Enumerable.Range((pageIndex - 1) * pageSize + 1, 11).Select(index =>
+        {
+
+            return new Unidades
+            {
+                Id = index,
+                Nombre = Nombres[rng.Next(Nombres.Length)],
+                Simbolo = Simbolos[rng.Next(Simbolos.Length)]
+            };
+        }).ToArray());
+    }
+
+
+
+    public async Task Eliminar()
+    {
+        await JsRuntime.InvokeAsync<object>(identifier: "deleteSwal");
+    }
+    private string txtValue { get; set; }
+    private async Task buscar()
+    {
+        await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Bucando...{txtValue}");
+        //await JsRuntime.InvokeAsync<Object>(identifier: "buscarSwal");
+    }
+}
+
