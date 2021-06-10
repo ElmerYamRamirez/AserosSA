@@ -1,0 +1,156 @@
+﻿@page "/almacen"
+
+@using System.ComponentModel
+@using AntDesign.TableModels
+@inject IJSRuntime JsRuntime
+<h1>Almacenes</h1>
+
+<div>
+    <Row Justify="end">
+        <Col Span="2">
+        <Button @onclick="AltaAlmacen" Type="primary">Agregar</Button>
+        </Col>
+    </Row>
+</div>
+
+
+<Table @ref="table"
+       TItem="WeatherForecast"
+       DataSource="@forecasts"
+       Total="_total"
+       @bind-PageIndex="_pageIndex"
+       @bind-PageSize="_pageSize"
+       @bind-SelectedRows="selectedRows"
+       OnChange="OnChange">
+    <Selection Key="@(context.Id.ToString())" />
+    <Column @bind-Field="@context.Id" Sortable />
+    <Column @bind-Field="@context.Nombre" Sortable />
+    <Column @bind-Field="@context.Descripcion" Sortable />
+    <ActionColumn>
+        <Button OnClick="()=>Edit(context.Id)">
+            <Icon Type="edit" Theme="outline" />
+        </Button>
+        <Button Danger OnClick="()=>Delete(context.Id)">
+            <Icon Type="delete" Theme="outline" />
+        </Button>
+    </ActionColumn>
+</Table>
+
+<br />
+<p>PageIndex: @_pageIndex | PageSize: @_pageSize | Total: @_total</p>
+<!--
+<br />
+<h5>selections:</h5>
+@if (selectedRows != null && selectedRows.Any())
+{
+    <Button Danger Size="small" OnClick="@(e => { selectedRows = null; })">Clear</Button>
+
+    @foreach (var selected in selectedRows)
+    {
+        <Tag @key="selected.Id" Closable OnClose="e=>RemoveSelection(selected.Id)">@selected.Id </Tag>
+    }
+}
+
+<Button OnClick="()=> { _pageIndex--; }">Previous page</Button>
+<Button OnClick="()=> { _pageIndex++; }">Next Page</Button>
+-->
+
+@using System.Text.Json;
+@code {
+
+    [Inject]
+    public NavigationManager NavManager { get; set; }
+
+    WeatherForecast[] forecasts;
+
+    IEnumerable<WeatherForecast> selectedRows;
+    ITable table;
+
+    int _pageIndex = 1;
+    int _pageSize = 4;
+    int _total = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        forecasts = await GetForecastAsync(_pageIndex, _pageSize);
+        _total = 15;
+    }
+
+    public class WeatherForecast
+    {
+        public int Id { get; set; }
+
+        public string Nombre { get; set; }
+
+        public string Descripcion { get; set; }
+
+        [DisplayName("Date")]
+        public DateTime? Date { get; set; }
+
+        [DisplayName("Temp. (C)")]
+        public int TemperatureC { get; set; }
+
+        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+
+        public bool Hot { get; set; }
+    }
+
+    private static readonly string[] Descripcion = new[]
+    {
+        "Materia Prima", "Refacciones", "Productos Varios", "Productos Terminados"
+    };
+
+    private static readonly string[] Names = new[]
+    {
+        "MP", "Refac", "PV", "PT"
+    };
+
+    public async Task OnChange(QueryModel<WeatherForecast> queryModel)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(queryModel));
+    }
+
+    public Task<WeatherForecast[]> GetForecastAsync(int pageIndex, int pageSize)
+    {
+        var rng = new Random();
+        return Task.FromResult(Enumerable.Range((pageIndex - 1) * pageSize + 1, pageSize).Select(index =>
+        {
+            var temperatureC = rng.Next(-20, 55);
+            return new WeatherForecast
+            {
+                Id = index,
+                Nombre = Names[rng.Next(Names.Length)],
+                Descripcion = Descripcion[rng.Next(Descripcion.Length)],
+                Date = DateTime.Now.AddDays(index),
+                TemperatureC = temperatureC,
+                Hot = temperatureC > 30,
+            };
+        }).ToArray());
+    }
+
+    public void RemoveSelection(int id)
+    {
+        var selected = selectedRows.Where(x => x.Id != id);
+        selectedRows = selected;
+    }
+
+    private async Task Delete(int id)
+    {
+        //await JsRuntime.InvokeAsync<object>(identifier: "deleteSwal");
+        await JsRuntime.InvokeVoidAsync("blazorInterop.deleteSwal");
+        //forecasts = forecasts.Where(x => x.Id != id).ToArray();
+        //_total = forecasts.Length;
+    }
+
+    private async Task Edit(int id)
+    {
+        NavManager.NavigateTo($"altaalmacen/{id}");
+        //forecasts = forecasts.Where(x => x.Id != id).ToArray();
+        //_total = forecasts.Length;
+    }
+
+    public void AltaAlmacen()
+    {
+        NavManager.NavigateTo("altaalmacen");
+    }
+}
