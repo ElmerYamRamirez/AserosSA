@@ -8,7 +8,7 @@
 <div>
     <Row Justify="end">
         <Col Span="2">
-        <Button @onclick="AltaAlmacen" Type="primary">Agregar</Button>
+            <Button @onclick="AltaAlmacen" Type="primary">Agregar</Button>
         </Col>
     </Row>
 </div>
@@ -142,7 +142,7 @@
         //_total = forecasts.Length;
     }
 
-    private async Task Edit(int id)
+    private void Edit(int id)
     {
         NavManager.NavigateTo($"altaalmacen/{id}");
         //forecasts = forecasts.Where(x => x.Id != id).ToArray();

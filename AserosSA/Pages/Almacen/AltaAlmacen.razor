@@ -3,7 +3,13 @@
 @using System.Text.Json;
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsRuntime
-<h3>Alta de Almacen - @id</h3>
+
+@if (id != 0){
+    <h3>Editar de Almacen</h3>
+}
+else { 
+    <h3>Alta Almacen</h3>
+}
 
 <Form Model="@model"
       LabelColSpan="24"
@@ -64,7 +70,7 @@
     -->
     <FormItem WrapperColSpan="16">
         <Button @onclick="save" HtmlType="submit">
-            Guardar
+            @saveValue
         </Button>
         <Button @onclick="cancel" HtmlType="submit" Danger>
             Cancelar
