@@ -7,8 +7,11 @@
 
 <div>
     <Row Justify="end">
+        <Col Span="9" Offset="12">
+        <Search EnterButton="true" OnSearch="buscar" @bind-Value="@txtValue" Placeholder="Introduce Almacen" />
+        </Col>
         <Col Span="2">
-            <Button @onclick="AltaAlmacen" Type="primary">Agregar</Button>
+        <Button @onclick="AltaAlmacen" Type="primary">Agregar</Button>
         </Col>
     </Row>
 </div>
@@ -69,6 +72,7 @@
     int _pageIndex = 1;
     int _pageSize = 4;
     int _total = 0;
+    private string txtValue { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -152,5 +156,11 @@
     public void AltaAlmacen()
     {
         NavManager.NavigateTo("altaalmacen");
+    }
+
+    private async Task buscar()
+    {
+        await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Bucando...{txtValue}");
+        //await JsRuntime.InvokeAsync<Object>(identifier: "buscarSwal");
     }
 }
