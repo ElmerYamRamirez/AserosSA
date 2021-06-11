@@ -3,15 +3,30 @@
 @using System.ComponentModel
 @using AntDesign.TableModels
 @inject IJSRuntime JsRuntime
-<h1>Almacenes</h1>
+
+<div class="col-sm-12" style="text-align:left;margin-top:10px;">
+    <h3>Almacenes</h3>
+</div>
 
 <div>
-    <Row Justify="end">
-        <Col Span="9" Offset="12">
-        <Search EnterButton="true" OnSearch="buscar" @bind-Value="@txtValue" Placeholder="Introduce Almacen" />
+    <Row Style="margin-bottom:10px;" Justify="end">
+        <Col Span="3">
+        <Select DataSource="@_list"
+                @bind-Value="@_selectedValue1"
+                ValueName="@nameof(Person.Value)"
+                LabelName="@nameof(Person.Name)"
+                DisabledName="@nameof(Person.IsDisabled)"
+                Style="width:120px"
+                OnSelectedItemChanged="OnSelectedItemChangedHandler">
+        </Select>
         </Col>
-        <Col Span="2">
-        <Button @onclick="AltaAlmacen" Type="primary">Agregar</Button>
+        <Col Span="9">
+        <Search EnterButton="true" OnSearch="buscar" @bind-Value="@txtValue" Placeholder="Buscar ubicación" />
+        </Col>
+        <Col Span="3">
+        <div style="text-align:right; width:87%;">
+            <a href="/AltaAlmacen" title="Agregar nueva ubicacion"><i style="margin-right:5px;">Agregar</i><span class="oi oi-plus"></span></a>
+        </div>
         </Col>
     </Row>
 </div>
@@ -30,12 +45,18 @@
     <Column @bind-Field="@context.Nombre" Sortable />
     <Column @bind-Field="@context.Descripcion" Sortable />
     <ActionColumn>
-        <Button OnClick="()=>Edit(context.Id)">
-            <Icon Type="edit" Theme="outline" />
-        </Button>
-        <Button Danger OnClick="()=>Delete(context.Id)">
-            <Icon Type="delete" Theme="outline" />
-        </Button>
+        <Space>
+            <a title="Editar" href="/altaalmacen/1" >
+                <span class="oi oi-pencil"></span>
+            </a>
+        </Space>
+    </ActionColumn>
+    <ActionColumn>
+        <Space>
+            <a title="Eliminar" @onclick="()=>Delete(context.Id)">
+                <span class="oi oi-trash"></span>
+            </a>
+        </Space>
     </ActionColumn>
 </Table>
 
@@ -74,10 +95,31 @@
     int _total = 0;
     private string txtValue { get; set; }
 
+    List<Person> _list;
+    string _selectedValue1;
+
     protected override async Task OnInitializedAsync()
     {
         forecasts = await GetForecastAsync(_pageIndex, _pageSize);
         _total = 15;
+
+        _list = new List<Person>
+    {
+            new Person {Value = "Nombre", Name = "Nombre"},
+            new Person {Value = "Descripción", Name = "Descripción"}
+        };
+    }
+
+    class Person
+    {
+        public string Value { get; set; }
+        public string Name { get; set; }
+        public bool IsDisabled { get; set; }
+    }
+
+    private void OnSelectedItemChangedHandler(Person value)
+    {
+        Console.WriteLine($"selected: ${value?.Name}");
     }
 
     public class WeatherForecast
