@@ -38,8 +38,8 @@
     <AntDesign.Column @bind-Field="@context.Producto" Sortable />
     <AntDesign.Column @bind-Field="@context.Zona" Sortable />
     <AntDesign.Column @bind-Field="@context.Pasillo" Sortable />
+    <AntDesign.Column @bind-Field="@context.Estante" Sortable />
     <AntDesign.Column @bind-Field="@context.Nivel" Sortable />
-    <AntDesign.Column @bind-Field="@context.SubNivel" Sortable />
 
     <ActionColumn>
         <Space>
@@ -95,11 +95,11 @@
         [DisplayName("Pasillo")]
         public string Pasillo { get; set; }
 
+        [DisplayName("Estante")]
+        public string Estante { get; set; }
+
         [DisplayName("Nivel")]
         public string Nivel { get; set; }
-
-        [DisplayName("SubNivel")]
-        public string SubNivel { get; set; }
 
     }
 
@@ -117,12 +117,12 @@
         "A", "B", "C", "D", "E", "F", "G", "H"
     };
 
-    private static readonly string[] Niveles = new[]
+    private static readonly string[] Estantes = new[]
     {
-        "01", "02", "03", "04", "05"
+        "001", "002", "03", "04", "05"
     };
 
-    private static readonly string[] SubNiveles = new[]
+    private static readonly string[] Niveles = new[]
     {
         "01", "02", "03"
     };
@@ -139,8 +139,8 @@
                 Producto = ListProductos[rng.Next(ListProductos.Length)],
                 Zona = Zonas[rng.Next(Zonas.Length)],
                 Pasillo = Pasillos[rng.Next(Pasillos.Length)],
+                Estante = Estantes[rng.Next(Estantes.Length)],
                 Nivel = Niveles[rng.Next(Niveles.Length)],
-                SubNivel = SubNiveles[rng.Next(SubNiveles.Length)],
             };
         }).ToArray());
     }

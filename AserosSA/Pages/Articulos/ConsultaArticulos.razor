@@ -1,0 +1,133 @@
+﻿@page "/consultaArticulo/{id:int}"
+@inject IJSRuntime JsRuntime
+@inject NavigationManager NavigationManager
+
+<div class="rounded w-75 bg-light mx-auto" style="margin:15px;">
+    <h3 class="text-center">Captura de Articulos</h3>
+    <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-10">
+            <table class="table">
+                <tbody>
+                    <tr>
+                        <td>
+                            <label>Clave de almacén: </label>
+                            <input type="text" class="form-control" aria-label="" value="100" disabled>
+                        </td>
+                        <td colspan="2">
+                            <label>Nombre del almacén:</label>
+                            <input type="text" class="form-control" aria-label="" value="Almacen central" disabled>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="rounded bg-info" colspan="8" style="color:white; background-color:aquamarine">
+                            Datos Generales
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Clave de grupo: </label>
+                            <input type="text" class="form-control" aria-label="" value="PAP" disabled>
+                        </td>
+                        <td colspan="2">
+                            <label>Nombre: </label>
+                            <input type="text" class="form-control" aria-label="" value="PAPELERIA" disabled>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Clave del articulo: </label>
+                            <input type="text" class="form-control" aria-label="" value="000005" disabled>
+                        </td>
+                        <td colspan="2">
+                            <label>Descripción: </label>
+                            <input type="text" class="form-control" aria-label="" value="ACETATOS" disabled>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3">
+                            <label>Marca: </label>
+                            <input type="text" class="form-control" aria-label="" value="IMPERIAL" disabled>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Clave de la ubicación: </label>
+                            <input type="text" class="form-control" aria-label="" value="001" disabled>
+                        </td>
+                        <td colspan="2">
+                            <label>Ubicación: </label>
+                            <input type="text" class="form-control" aria-label="" value="ESTANTE 1" disabled>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Clave de unidad: </label>
+                            <input type="text" class="form-control" aria-label="" value="PZA" disabled>
+                        </td>
+                        <td colspan="2">
+                            <label>Nombre de la unidad: </label>
+                            <input type="text" class="form-control" aria-label="" value="PIEZA" disabled>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>Máximo: </label>
+                            <input type="text" class="form-control" aria-label="" value="2,000" disabled>
+                        </td>
+                        <td>
+                            <label>Punto de Reorden: </label>
+                            <input type="text" class="form-control" aria-label="" value="500" disabled>
+                        </td>
+                        <td>
+                            <label>Minimo: </label>
+                            <input type="text" class="form-control" aria-label="" value="300" disabled>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col-sm-11" style="text-align:right;">
+            <Button Type="primary" @onclick="savedMessage">Editar</Button>
+            <Button Type="default" @onclick="cancel">Regresar</Button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+
+    public String saveValue { get; set; }
+
+    //VARIABLES DEL SELECTOR MULTIPLE
+    List<string> _items;
+    IEnumerable<string> _selectedValues1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (id != 0)
+        {
+            saveValue = "Editar";
+        }
+        else
+        {
+            saveValue = "Guardar";
+        }
+    }
+
+    public async Task savedMessage()
+    {
+
+        NavigationManager.NavigateTo($"/altaArticulo/{id}");
+    }
+
+
+    public async Task cancel()
+    {
+        NavigationManager.NavigateTo("/listaArticulos");
+    }
+
+}
+
