@@ -1,52 +1,84 @@
-﻿<div class="top-row pl-4 navbar navbar-dark">
-    <a class="navbar-brand" href="">AserosSA</a>
-    <button class="navbar-toggler" @onclick="ToggleNavMenu">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-</div>
+﻿<Sider Collapsible Collapsed=@collapsed OnCollapse=@onCollapse>
+    <div class="logo" />
+    <Menu Theme="MenuTheme.Dark" DefaultSelectedKeys=@(new[]{"1"}) Mode="MenuMode.Inline">
 
-<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
-    <ul class="nav flex-column">
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="/home" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Inicio
-            </NavLink>
-        </li>
-        <!--<li class="nav-item px-3">
-        <NavLink class="nav-link" href="counter">
-            <span class="oi oi-plus" aria-hidden="true"></span> Counter
-        </NavLink>
-    </li>
-    <li class="nav-item px-3">
-        <NavLink class="nav-link" href="fetchdata">
-            <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data
-        </NavLink>
-    </li>-->
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="almacen">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Almacenes
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="listadoUnidades">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Unidades
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="ubicacionProductos">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Ubicación
-            </NavLink>
-        </li>
-    </ul>
-</div>
+        <MenuItem Key="1">
+            <Icon Type="home" Theme="outline" />
+            <span>
+                <NavLink href="/home">
+                    Inicio
+                </NavLink>
+            </span>
+        </MenuItem>
+        <SubMenu Key="sub1" TitleTemplate=@catalogos>
+            <MenuItem Key="2">
+                <NavLink href="/almacen">Almacenes</NavLink>
+            </MenuItem>
+            <MenuItem Key="3">
+                <NavLink href="/listadoUnidades">Unidades</NavLink>
+            </MenuItem>
+            <MenuItem Key="4">
+                <NavLink href="/ubicacionProductos">Ubicación</NavLink>
+            </MenuItem>
+        </SubMenu>
+        <MenuItem Key="5">
+            <Icon Type="apartment" Theme="outline" />
+            <span>
+                <NavLink href="/listaArticulos">
+                    Artículos
+                </NavLink>
+
+            </span>
+        </MenuItem>
+
+        <SubMenu Key="sub3" TitleTemplate=@graficas>
+            <MenuItem Key="6">
+                <NavLink href="/">Consumo de valor </NavLink>
+            </MenuItem>
+            <MenuItem Key="7">
+                <NavLink href="/">Consumo por unidad </NavLink>
+            </MenuItem>
+        </SubMenu>
+
+        <SubMenu Key="sub2" TitleTemplate=@reportes>
+            <MenuItem Key="8">
+                <NavLink href="/reportePR">Punto de reorden </NavLink>
+            </MenuItem>
+            <MenuItem Key="9">
+                <NavLink href="/reporteEA">Existencias de almacen </NavLink>
+            </MenuItem>
+        </SubMenu>
+    </Menu>
+</Sider>
+
 
 @code {
-    private bool collapseNavMenu = true;
+    bool collapsed;
 
-    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    RenderFragment catalogos =
+    @<span>
+        <Icon Type="database" Theme="outline" />
+        <span>Catálogos</span>
+    </span>;
 
-    private void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
-    }
+RenderFragment reportes =
+@<span>
+    <Icon Type="database" Theme="outline" />
+    <span>Reportes</span>
+</span>;
+
+RenderFragment graficas =
+@<span>
+    <Icon Type="database" Theme="outline" />
+    <span>Gráficas</span>
+</span>;
+
+void onCollapse(bool collapsed)
+{
+Console.WriteLine(collapsed);
+this.collapsed = collapsed;
+}
+
+
+
 }
