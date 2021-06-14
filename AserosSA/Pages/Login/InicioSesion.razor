@@ -1,16 +1,16 @@
 ﻿@layout LoginLayout
-
+@page "/inicioSesion"
 @inject IJSRuntime JsRuntime
 @inject NavigationManager NavigationManager
 @using Syncfusion.Blazor.DropDowns
 @using Syncfusion.Blazor.Buttons
 @using Syncfusion.Blazor.Calendars
-<div class="container">
+<div class="container" >
     <div class="d-flex justify-content-center h-75" style="border-radius: 10px; padding: 50px;">
         <div class="card" style="width: 25rem;">
             <div class="card-header d-flex justify-content-center">
                 <div class="fadeIn first">
-                    <img src="/Images/profile-user.png" id="icon" alt="User Icon">
+                    <img src="/Images/CE_AcerosSA_Logo.jpg" width="100" height="100" id="icon" alt="User Icon">
                 </div>
             </div>
             <div class="card-body">
@@ -30,12 +30,12 @@
                     <NavLink class="nav-link d-flex justify-content-center h-100" href="home">
                         <button type="button" class="btn btn-primary">Ingresar</button>
                     </NavLink>
-                    <div class="form-group d-flex justify-content-center">
+                    <!--<div class="form-group d-flex justify-content-center">
                         <a href="">¿Olvidó su contraseña?</a>
                     </div>
                     <div class="form-group d-flex justify-content-center">
                         <a href="">¡Registrate!</a>
-                    </div>
+                    </div>-->
                 </form>
             </div>
         </div>

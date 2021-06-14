@@ -1,11 +1,11 @@
-﻿<Sider Collapsible Collapsed=@collapsed OnCollapse=@onCollapse>
+﻿<Sider Collapsible Collapsed=@collapsed OnCollapse=@onCollapse style="height:100%; background-color: white; color:red" >
     <div class="logo" />
-    <Menu Theme="MenuTheme.Dark" DefaultSelectedKeys=@(new[]{"1"}) Mode="MenuMode.Inline">
+    <Menu Theme="MenuTheme.Light" DefaultSelectedKeys=@(new[]{"1"}) Mode="MenuMode.Inline">
 
         <MenuItem Key="1">
             <Icon Type="home" Theme="outline" />
             <span>
-                <NavLink href="/home">
+                <NavLink href="/inicioSesion">
                     Inicio
                 </NavLink>
             </span>
@@ -61,23 +61,23 @@
         <span>Catálogos</span>
     </span>;
 
-RenderFragment reportes =
-@<span>
-    <Icon Type="database" Theme="outline" />
-    <span>Reportes</span>
-</span>;
+    RenderFragment reportes =
+    @<span>
+        <Icon Type="database" Theme="outline" />
+        <span>Reportes</span>
+    </span>;
 
-RenderFragment graficas =
-@<span>
-    <Icon Type="database" Theme="outline" />
-    <span>Gráficas</span>
-</span>;
+    RenderFragment graficas =
+    @<span>
+        <Icon Type="database" Theme="outline" />
+        <span>Gráficas</span>
+    </span>;
 
-void onCollapse(bool collapsed)
-{
-Console.WriteLine(collapsed);
-this.collapsed = collapsed;
-}
+    void onCollapse(bool collapsed)
+    {
+    Console.WriteLine(collapsed);
+    this.collapsed = collapsed;
+    }
 
 
 
