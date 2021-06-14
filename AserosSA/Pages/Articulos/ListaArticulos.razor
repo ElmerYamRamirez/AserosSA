@@ -1,0 +1,247 @@
+﻿@page "/listaArticulos"
+
+@inject IJSRuntime JsRuntime
+@using System.ComponentModel
+@inject ModalService _modalService
+@inject NavigationManager NavigationManager
+
+
+<div class="col-sm-12" style="text-align:left;margin-top:10px;">
+    <h3>Articulos</h3>
+</div>
+<div>
+    <Row Style="margin-bottom:10px;" Justify="end">
+        <Col Span="3">
+        <Select DataSource="@_list"
+                @bind-Value="@_selectedValue1"
+                ValueName="@nameof(CriteriodeBusqueda.Value)"
+                LabelName="@nameof(CriteriodeBusqueda.Name)"
+                DisabledName="@nameof(CriteriodeBusqueda.IsDisabled)"
+                Style="width:120px"
+                OnSelectedItemChanged="OnSelectedItemChangedHandler">
+        </Select>
+        </Col>
+        <Col Span="9">
+        <Search EnterButton="true" OnSearch="buscar" @bind-Value="@txtValue" Placeholder="Buscar" />
+        </Col>
+        <Col Span="3">
+        <div style="text-align:right; width:87%;">
+            <a href="/altaArticulo" title="Nuevo"><i style="margin-right:5px;">Agregar</i><span class="oi oi-plus"></span></a>
+        </div>
+        </Col>
+    </Row>
+</div>
+
+
+<Table @ref="table"
+       TItem="CasosDeUso"
+       DataSource="@casoDeUso"
+       Total="_total"
+       @bind-PageIndex="_pageIndex"
+       @bind-PageSize="_pageSize"
+       @bind-SelectedRows="selectedRows">
+
+    <Selection Key="@(context.Id.ToString())" />
+
+    <AntDesign.Column @bind-Field="@context.Id" Sortable />
+    <AntDesign.Column @bind-Field="@context.ClaveAlmacen" Sortable />
+    <AntDesign.Column @bind-Field="@context.ClaveGrupo" Sortable />
+    <AntDesign.Column @bind-Field="@context.ClaveArticulo" Sortable />
+    <AntDesign.Column @bind-Field="@context.Descripcion" Sortable />
+    <AntDesign.Column @bind-Field="@context.Marca" Sortable />
+    <AntDesign.Column @bind-Field="@context.ClaveUbicacion" Sortable />
+    <AntDesign.Column @bind-Field="@context.ClaveUnidad" Sortable />
+    <AntDesign.Column @bind-Field="@context.Maximo" Sortable />
+    <AntDesign.Column @bind-Field="@context.PuntoReorden" Sortable />
+    <AntDesign.Column @bind-Field="@context.Minimo" Sortable />
+    <ActionColumn>
+        <Space>
+            <a href="/consultaArticulo/1" title="Ver">
+                <span class="oi oi-eye"></span>
+            </a>
+        </Space>
+    </ActionColumn>
+    <ActionColumn>
+        <Space>
+            <a href="/altaArticulo/1" title="Editar">
+                <span class="oi oi-pencil"></span>
+            </a>
+        </Space>
+    </ActionColumn>
+    <ActionColumn>
+        <Space>
+            <a title="Eliminar" @onclick="Eliminar">
+                <span class="oi oi-trash"></span>
+            </a>
+        </Space>
+    </ActionColumn>
+</Table>
+
+<br />
+<p>Página: @_pageIndex | Registros: @_pageSize | Total: @_total</p>
+
+
+
+
+
+@code {
+
+    CasosDeUso[] casoDeUso;
+
+    IEnumerable<CasosDeUso> selectedRows;
+    ITable table;
+
+    int _pageIndex = 1;
+    int _pageSize = 5;
+    int _total = 0;
+
+    List<CriteriodeBusqueda> _list;
+    string _selectedValue1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        casoDeUso = await GetForecastAsync(_pageIndex, _pageSize);
+        _total = casoDeUso.Length;
+
+        _list = new List<CriteriodeBusqueda>{
+            new CriteriodeBusqueda {Value = "Clave", Name = "Clave"},
+            new CriteriodeBusqueda {Value = "Descripción", Name = "Descripción"}
+        };
+    }
+
+    class CriteriodeBusqueda
+    {
+        public string Value { get; set; }
+        public string Name { get; set; }
+        public bool IsDisabled { get; set; }
+    }
+
+    private void OnSelectedItemChangedHandler(CriteriodeBusqueda value)
+    {
+        Console.WriteLine($"selected: ${value?.Name}");
+    }
+
+    public class CasosDeUso
+    {
+        public int Id { get; set; }
+
+        [DisplayName("ClaveAlmacen")]
+        public string? ClaveAlmacen { get; set; }
+
+        [DisplayName("ClaveGrupo")]
+        public string ClaveGrupo { get; set; }
+
+        [DisplayName("ClaveArticulo")]
+        public string ClaveArticulo { get; set; }
+
+        [DisplayName("Descripcion")]
+        public string Descripcion { get; set; }
+
+        [DisplayName("Marca")]
+        public string Marca { get; set; }
+
+        [DisplayName("ClaveUbicacion")]
+        public string ClaveUbicacion { get; set; }
+
+        [DisplayName("ClaveUnidad")]
+        public string ClaveUnidad { get; set; }
+
+        [DisplayName("Maximo")]
+        public string Maximo { get; set; }
+
+        [DisplayName("PuntoReorden")]
+        public string PuntoReorden { get; set; }
+
+        [DisplayName("Minimo")]
+        public string Minimo { get; set; }
+
+    }
+
+    private static readonly string[] ClavesAlmacenes = new[]
+    {
+        "100", "150", "200", "250", "300", "350", "400", "450", "500", "550", "600"
+    };
+    private static readonly string[] ClavesGrupos = new[]
+    {
+        "PAP", "CLV"
+    };
+    private static readonly string[] ClavesArticulos = new[]
+    {
+        "PAPELERIA", "CLAVOS"
+    };
+    private static readonly string[] Descripciones = new[]
+    {
+        "ACETATOS", "GALVANIZADOS"
+    };
+    private static readonly string[] Marcas = new[]
+    {
+        "IMPERIAL", "POP", "HILLMAN", "ARROW", "MEGA"
+    };
+    private static readonly string[] ClavesUbicaciones = new[]
+    {
+        "001", "002", "003", "004", "005"
+    };
+    private static readonly string[] ClavesUnidades = new[]
+    {
+        "PZA", "PZA", "PZA", "PZA", "PZA"
+    };
+    private static readonly string[] Maximos = new[]
+    {
+        "2,000", "3,000", "4,000", "5,000", "Media"
+    };
+    private static readonly string[] PuntosReordenes = new[]
+    {
+         "100", "150", "200", "250", "300", "350", "400", "450", "500", "550", "600"
+    };
+    private static readonly string[] Minimos = new[]
+    {
+        "100", "200", "300"
+    };
+
+    public Task<CasosDeUso[]> GetForecastAsync(int pageIndex, int pageSize)
+    {
+        var rng = new Random();
+        return Task.FromResult(Enumerable.Range((pageIndex - 1) * pageSize + 1, 11).Select(index =>
+        {
+
+            return new CasosDeUso
+            {
+                Id = index,
+                ClaveAlmacen = ClavesAlmacenes[rng.Next(ClavesAlmacenes.Length)],
+                ClaveGrupo = ClavesGrupos[rng.Next(ClavesGrupos.Length)],
+                ClaveArticulo = ClavesArticulos[rng.Next(ClavesArticulos.Length)],
+                Descripcion = Descripciones[rng.Next(Descripciones.Length)],
+                Marca = Marcas[rng.Next(Marcas.Length)],
+                ClaveUbicacion = ClavesUbicaciones[rng.Next(ClavesUbicaciones.Length)],
+                ClaveUnidad = ClavesUnidades[rng.Next(ClavesUbicaciones.Length)],
+                Maximo = Maximos[rng.Next(Maximos.Length)],
+                PuntoReorden = PuntosReordenes[rng.Next(PuntosReordenes.Length)],
+                Minimo = Minimos[rng.Next(Minimos.Length)],
+            };
+        }).ToArray());
+    }
+
+
+
+    public async Task Eliminar()
+    {
+        //await JsRuntime.InvokeAsync<string>(identifier: "cancelSwal");
+        var isTrue = await _modalService.ConfirmAsync(new ConfirmOptions()
+        {
+            Title = "Elimar",
+            Icon =@<Icon Type="exclamation-circle" Theme="Outline"></Icon>,
+            Content = "¿Estas seguro que deseas eliminar este articulo?",
+            OkText = "Si",
+            CancelText = "Cancelar"
+        });
+
+        if (isTrue)
+        NavigationManager.NavigateTo("/listaArticulos");
+    }
+    private string txtValue { get; set; }
+    private async Task buscar()
+    {
+    await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Bucando...{txtValue}");
+    }
+}
+
