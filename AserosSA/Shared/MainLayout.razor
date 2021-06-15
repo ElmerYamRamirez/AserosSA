@@ -1,9 +1,8 @@
 ﻿@inherits LayoutComponentBase
-
+<!--
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+
+    <NavMenu />
 
     <div class="main">
         <div class="top-row px-4">
@@ -15,3 +14,31 @@
         </div>
     </div>
 </div>
+-->
+
+<Layout Style="height: 100vh; width: 100vw">
+    <Header Class="header">
+        <img src="/Images/CE_AcerosSA_Logo.jpg" style="width: 40px; height: 40px;" />
+    </Header>
+    <Layout>
+        <NavMenu />
+        <Divider Type="DirectionVHType.Vertical" />
+        <Content Class="site-layout-background" Style=" padding: 24px; margin: 0; min-height: 280px; overflow:auto">
+            @Body
+        </Content>
+    </Layout>
+</Layout>
+
+<style>
+    .logo {
+        width: 120px;
+        height: 31px;
+        background: rgba(255, 255, 255, 0.2);
+        margin: 16px 28px 16px 0;
+        float: left;
+    }
+
+    .site-layout-background {
+        background: #fff;
+    }
+</style>

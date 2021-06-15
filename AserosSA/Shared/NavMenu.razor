@@ -1,7 +1,5 @@
-﻿<Sider Collapsible Collapsed=@collapsed OnCollapse=@onCollapse style="height:100%; background-color: white; color:red" >
-    <div class="logo" />
-    <Menu Theme="MenuTheme.Light" DefaultSelectedKeys=@(new[]{"1"}) Mode="MenuMode.Inline">
-
+﻿<!--<div style="width: 256px;">
+    <Menu Theme="MenuTheme.Dark" DefaultSelectedKeys=@(new[]{"1"}) Mode="MenuMode.Inline">
         <MenuItem Key="1">
             <Icon Type="home" Theme="outline" />
             <span>
@@ -69,8 +67,40 @@
             </span>
         </MenuItem>
     </Menu>
-</Sider>
+</div>
 
+    -->
+
+<Sider Width="250" Class="site-layout-background">
+    <Menu Mode="MenuMode.Inline"
+          DefaultSelectedKeys=@(new[] {"1"})
+          DefaultOpenKeys=@(new[] {"sub1"})
+          Style="height: 100%; border-right: 0;">
+        <MenuItem Key="1"><NavLink href="/listaArticulos">Artículos</NavLink></MenuItem>
+        <SubMenu Key="sub1" Title=Catálogos>
+            <MenuItem Key="2"><NavLink href="/almacen">Almacenes</NavLink></MenuItem>
+            <MenuItem Key="3"><NavLink href="/listadoUnidades">Unidades</NavLink></MenuItem>
+            <MenuItem Key="4"><NavLink href="/ubicacionProductos">Ubicación</NavLink></MenuItem>
+        </SubMenu>
+        <SubMenu Key="sub2" Title=Movimientos>
+            <MenuItem Key="5"><NavLink href="/">Entradas</NavLink></MenuItem>
+            <MenuItem Key="6"><NavLink href="/">Salidas</NavLink></MenuItem>
+            <MenuItem Key="7">option11</MenuItem>
+            <MenuItem Key="8">option12</MenuItem>
+        </SubMenu>
+        <SubMenu Key="sub3" Title=Gráficas>
+            <MenuItem Key="9"><NavLink href="/">Consumo de valor </NavLink></MenuItem>
+            <MenuItem Key="10"><NavLink href="/">Consumo por unidad </NavLink></MenuItem>
+            <MenuItem Key="11">option7</MenuItem>
+        </SubMenu>
+        <SubMenu Key="sub4" Title=Reportes>
+            <MenuItem Key="12"><NavLink href="/reportePR">Punto de reorden </NavLink></MenuItem>
+            <MenuItem Key="13"><NavLink href="/reporteEA">Existencias de almacen </NavLink></MenuItem>
+            <MenuItem Key="14">option11</MenuItem>
+            <MenuItem Key="15">option12</MenuItem>
+        </SubMenu>
+    </Menu>
+</Sider>
 
 @code {
     bool collapsed;
@@ -81,23 +111,23 @@
         <span>Catálogos</span>
     </span>;
 
-    RenderFragment reportes =
-    @<span>
-        <Icon Type="database" Theme="outline" />
-        <span>Reportes</span>
-    </span>;
+RenderFragment reportes =
+@<span>
+    <Icon Type="database" Theme="outline" />
+    <span>Reportes</span>
+</span>;
 
-    RenderFragment graficas =
-    @<span>
-        <Icon Type="database" Theme="outline" />
-        <span>Gráficas</span>
-    </span>;
+RenderFragment graficas =
+@<span>
+    <Icon Type="database" Theme="outline" />
+    <span>Gráficas</span>
+</span>;
 
-    void onCollapse(bool collapsed)
-    {
-    Console.WriteLine(collapsed);
-    this.collapsed = collapsed;
-    }
+void onCollapse(bool collapsed)
+{
+Console.WriteLine(collapsed);
+this.collapsed = collapsed;
+}
 
 
 
