@@ -1,5 +1,92 @@
-﻿@page "/GraficaConsumoPorUnidad"
+﻿@page "/consumounidad"
+
+@using AntDesign.Charts
+@using Title = AntDesign.Charts.Title
+@inject NavigationManager NavigationManager
+@inject HttpClient HttpClient
+
+<Pie Data="userStoriesByCriteria" Config="pieConfig" />
+
+@code{
+
+    object[] data = new object[] {
+        new  { year= "1991", value= 3 },
+        new  { year= "1992", value= 4 },
+        new  { year= "1993", value= 3.5 },
+        new  { year= "1994", value= 5 },
+        new  { year= "1995", value= 4.9 },
+        new  { year= "1996", value= 6 },
+        new  { year= "1997", value= 7 },
+        new  { year= "1998", value= 9 },
+        new  { year= "1999", value= 13 },
 
 
+    };
 
-@code{}
+    object[] userStoriesByCriteria = new object[]
+    {
+        new { criterio="finalizadas", value = 56 },
+        new { criterio="Intermedio", value = 96 },
+        new { criterio="Inicial", value = 76 },
+
+        };
+
+    LineConfig config = new LineConfig()
+    {
+        Title = new AntDesign.Charts.Title()
+        {
+            Visible = true,
+            Text = "Mi gráfica",
+        },
+        Description = new Description()
+        {
+            Visible = true,
+            Text = "Mi prueba",
+        },
+        Padding = "auto",
+        ForceFit = true,
+        XField = "year",
+        YField = "value",
+        Smooth = true,
+    };
+
+    PieConfig pieConfig = new PieConfig()
+    {
+        Title = new AntDesign.Charts.Title()
+        {
+            Visible = true,
+            Text = "Historias de usuario por criterio de exito",
+        },
+        Description = new Description()
+        {
+            Visible = true,
+            Text = "Se muetran los tres ecriterios de exito que se tienen para las historias de usuario",
+        },
+
+        Radius = 0.8,
+        AngleField = "value",
+        ColorField = "criterio",
+
+        Label = new PieLabelConfig
+        {
+            Visible = true,
+            Type = "inner"
+        }
+    };
+
+    class Column
+    {
+        public string Proyecto { get; set; }
+
+        public int Historias_de_usuario { get; set; }
+
+        public string Estatus { get; set; }
+    }
+
+    Column[] proyectos = Enumerable.Range(0, 20).Select(i => new Column()
+    {
+        Proyecto = $"Proyecto {i}",
+        Historias_de_usuario = 32,
+        Estatus = $"Pendiente {i}"
+    }).ToArray();
+}
