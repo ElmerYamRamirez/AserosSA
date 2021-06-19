@@ -1,4 +1,4 @@
-﻿@page "/entradaalmacen"
+﻿@page "/facturas"
 @using System.ComponentModel
 @using AntDesign.TableModels
 @inject IJSRuntime JsRuntime
@@ -23,7 +23,7 @@
         </Col>
         <Col Span="3">
         <div style="text-align:right; width:87%;">
-            <a href="/AltaMovimiento" title="Agregar nueva ubicacion"><i style="margin-right:5px;">Agregar</i><span class="oi oi-plus"></span></a>
+            <a href="/altafactura" title="Agregar nueva ubicacion"><i style="margin-right:5px;">Agregar</i><span class="oi oi-plus"></span></a>
         </div>
         </Col>
     </Row>
@@ -79,8 +79,8 @@
 
         _list = new List<Person>{
             new Person {Value = "Fecha", Name = "Fecha"},
-            new Person {Value = "Articulo", Name = "Articulo"},
-            new Person {Value = "Folio", Name = "Folio"}
+            new Person {Value = "Artículo", Name = "Artículo"},
+            new Person {Value = "Número factura", Name = "Número factura"}
         };
     }
 
@@ -93,7 +93,7 @@
 
     public class WeatherForecast
     {
-        [DisplayName("Folio")]
+        [DisplayName("Número factura")]
         public int Id { get; set; }
 
         [DisplayName("Fecha")]

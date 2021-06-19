@@ -1,0 +1,166 @@
+﻿@page "/cancelacionrequisicion"
+@using System.ComponentModel
+@using AntDesign.TableModels
+@inject IJSRuntime JsRuntime
+
+<div class="col-sm-12" style="text-align:left;margin-top:10px;">
+    <h3>Cancelación requisiciones</h3>
+</div>
+
+<div>
+    <Row Style="margin-bottom:10px;" Justify="end">
+        <Col Span="3">
+        <Select DataSource="@_list"
+                @bind-Value="@_selectedValue1"
+                ValueName="@nameof(Person.Value)"
+                LabelName="@nameof(Person.Name)"
+                DisabledName="@nameof(Person.IsDisabled)"
+                Style="width:120px">
+        </Select>
+        </Col>
+        <Col Span="9">
+        <Search EnterButton="true" OnSearch="buscar" @bind-Value="@txtValue" Placeholder="Buscar ubicación" />
+        </Col>
+        <Col Span="3">
+        <div style="text-align:right; width:87%;">
+            <a href="/altacancelacion" title="Agregar nueva ubicacion"><i style="margin-right:5px;">Agregar</i><span class="oi oi-plus"></span></a>
+        </div>
+        </Col>
+    </Row>
+</div>
+
+<Table @ref="table"
+       TItem="WeatherForecast"
+       DataSource="@forecasts"
+       Total="_total"
+       @bind-PageIndex="_pageIndex"
+       @bind-PageSize="_pageSize"
+       @bind-SelectedRows="selectedRows"
+       OnChange="OnChange">
+    <Selection Key="@(context.Id.ToString())" />
+    <Column @bind-Field="@context.Id" Sortable />
+    <Column @bind-Field="@context.Date" Format="yyyy-MM-dd" Sortable />
+    <Column @bind-Field="@context.Date2" Format="yyyy-MM-dd" Sortable />
+    <Column @bind-Field="@context.Solicitante" Sortable />
+    <Column @bind-Field="@context.Empleado" Sortable />
+    <ActionColumn>
+        <Space>
+            <a title="Eliminar" @onclick="()=>Delete(context.Id)">
+                <span class="oi oi-trash"></span>
+            </a>
+        </Space>
+    </ActionColumn>
+</Table>
+
+<br />
+<p>PageIndex: @_pageIndex | PageSize: @_pageSize | Total: @_total</p>
+
+@using System.Text.Json;
+@code {
+    WeatherForecast[] forecasts;
+
+    IEnumerable<WeatherForecast> selectedRows;
+    ITable table;
+
+    int _pageIndex = 1;
+    int _pageSize = 4;
+    int _total = 0;
+
+    List<Person> _list;
+    string _selectedValue1;
+
+    private string txtValue { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        forecasts = await GetForecastAsync(_pageIndex, _pageSize);
+        _total = 5;
+
+        _list = new List<Person>{
+            new Person {Value = "Fecha", Name = "Fecha"},
+            new Person {Value = "Articulo", Name = "Articulo"},
+            new Person {Value = "Folio", Name = "Folio"}
+        };
+    }
+
+    class Person
+    {
+        public string Value { get; set; }
+        public string Name { get; set; }
+        public bool IsDisabled { get; set; }
+    }
+
+    public class WeatherForecast
+    {
+        [DisplayName("Número requisiciones")]
+        public int Id { get; set; }
+
+        [DisplayName("Fecha requisición")]
+        public DateTime? Date { get; set; }
+
+        [DisplayName("Fecha recibido")]
+        public DateTime? Date2 { get; set; }
+
+        public string Solicitante { get; set; }
+
+        public string Empleado { get; set; }
+
+        public double Precio { get; set; }
+
+        public double Total { get; set; }
+    }
+
+    private static readonly string[] Articulos = new[]
+    {
+        "Elmer Yam", "Jose Moo", "Maria Ramirez", "Maximo Requena"
+    };
+
+    private static readonly string[] Cantidades = new[]
+    {
+        "Elmer Serrano", "Jose Felix", "Maria Ramirez", "Maximo Yam"
+    };
+
+    public async Task OnChange(QueryModel<WeatherForecast> queryModel)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(queryModel));
+    }
+
+    public Task<WeatherForecast[]> GetForecastAsync(int pageIndex, int pageSize)
+    {
+        var rng = new Random();
+        return Task.FromResult(Enumerable.Range((pageIndex - 1) * pageSize + 1, pageSize).Select(index =>
+        {
+            var temperatureC = rng.Next(-20, 55);
+            return new WeatherForecast
+            {
+                Id = index,
+                Date = DateTime.Now.AddDays(index),
+                Date2 = DateTime.Now.AddDays(index + 10),
+                Solicitante = Articulos[rng.Next(Articulos.Length)],
+                Empleado = Cantidades[rng.Next(Cantidades.Length)],
+                Precio = 30,
+                Total = 60
+
+            };
+        }).ToArray());
+    }
+
+    public void RemoveSelection(int id)
+    {
+        var selected = selectedRows.Where(x => x.Id != id);
+        selectedRows = selected;
+    }
+
+    private async Task Delete(int id)
+    {
+        await JsRuntime.InvokeVoidAsync("blazorInterop.deleteSwal");
+        forecasts = forecasts.Where(x => x.Id != id).ToArray();
+        _total = forecasts.Length;
+    }
+
+    private async Task buscar()
+    {
+        await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Bucando...{txtValue}");
+        //await JsRuntime.InvokeAsync<Object>(identifier: "buscarSwal");
+    }
+}

@@ -1,0 +1,332 @@
+﻿@page "/altacancelacion"
+
+@using System.Text.Json;
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime
+
+
+<h3>Cancelar Requisición</h3>
+
+
+
+<Form Layout="FormLayout.Horizontal" Style="padding-top:50px"
+      Model="@model"
+      OnFinish="OnFinish"
+      OnFinishFailed="OnFinishFailed"
+      LabelCol="GetFormLabelCol()"
+      WrapperCol="GetFormWrapperCol()"
+      Size="@model.Size">
+
+    <FormItem Label="Número de requisición">
+        <Input @bind-Value="@context.Input" />
+    </FormItem>
+    <FormItem Label="Fecha de requisición">
+        <DatePicker @bind-Value="@context.DatePicker" />
+    </FormItem>
+    <FormItem Label="Fecha de recibido">
+        <DatePicker @bind-Value="@context.DatePicker" />
+    </FormItem>
+    <FormItem Label="Hora recibido">
+        <TimePicker TValue="DateTime?" @bind-Value="@context.DatePicker" Format='@("hh:mm")' />
+    </FormItem>
+    <FormItem Label="Solicitante">
+        <Input @bind-Value="@context.Solicitante" />
+    </FormItem>
+    <FormItem Label="Empleado">
+        <Input @bind-Value="@context.Empleado" />
+    </FormItem>
+    <FormItem Label="Observaciones">
+        <TextArea @bind-Value="@context.Comentario" />
+    </FormItem>
+
+    <Divider Orientation="left" Style="font-weight:bold">Articulos</Divider>
+    <Button OnClick="addArticle" Type="primary" Style="margin-bottom:16px">
+        Agregar un articulo
+    </Button>
+    <Table DataSource="listOfData" TItem="ItemData" RowClassName="@(_=>"editable-row")" Bordered TableLayout="fixed" Size=@TableSize.Small>
+        <ChildContent Context="data">
+            <Column TData="string" Title="Clave">
+                @if (!editCache[data.Clave].edit)
+                {
+                    @data.Clave
+                }
+                else
+                {
+                    <Input @bind-Value="editCache[data.Clave].data.Clave" />
+                }
+            </Column>
+            <Column TData="string" Title="Descripción">
+                @if (!editCache[data.Clave].edit)
+                {
+                    @data.Unidad
+                }
+                else
+                {
+                    <Select Mode="default"
+                            DataSource="@_persons"
+                            @bind-Value="editCache[data.Clave].data.Unidad"
+                            LabelName="@nameof(Person.Name)"
+                            ValueName="@nameof(Person.Name)">
+                    </Select>
+                }
+            </Column>
+            <Column TData="string" Title="Cantidad">
+                @if (!editCache[data.Clave].edit)
+                {
+                    @data.Cantidad
+                }
+                else
+                {
+                    <AntDesign.InputNumber @bind-Value="editCache[data.Clave].data.Cantidad" />
+                }
+            </Column>
+            <Column TData="string" Title="Unidad">
+                @if (!editCache[data.Clave].edit)
+                {
+                    @data.Unidad
+                }
+                else
+                {
+                    <Input @bind-Value="editCache[data.Clave].data.Unidad" />
+                }
+            </Column>
+            <Column TData="string" Title="Precio unitario">
+                @if (!editCache[data.Clave].edit)
+                {
+                    @data.Precio
+                }
+                else
+                {
+                    <Input @bind-Value="editCache[data.Clave].data.Precio" />
+                }
+            </Column>
+            <Column TData="string" Title="Subtotal">
+                @if (!editCache[data.Clave].edit)
+                {
+                    @data.Cantidad
+                }
+                else
+                {
+                    <Input @bind-Value="editCache[data.Clave].data.Cantidad" />
+                }
+            </Column>
+            <Column TData="string" Title="%IVA">
+                @if (!editCache[data.Clave].edit)
+                {
+                    @data.Cantidad
+                }
+                else
+                {
+                    <Input @bind-Value="editCache[data.Clave].data.Cantidad" />
+                }
+            </Column>
+            <Column TData="string" Title="Total con IVA">
+                @if (!editCache[data.Clave].edit)
+                {
+                    @data.Cantidad
+                }
+                else
+                {
+                    <Input @bind-Value="editCache[data.Clave].data.Cantidad" />
+                }
+            </Column>
+            <ActionColumn Title="Acciones">
+                @if (!editCache[data.Clave].edit)
+                {
+                    <a @onclick="() => startEdit(data.Clave)">Editar</a>
+                }
+                else
+                {
+                    <a @onclick="() => saveEdit(data.Clave)" class="save">Guardar</a>
+                    <Popconfirm Title="Cancelar?"
+                                OnConfirm="() => cancelEdit(data.Clave)"
+                                OkText="Si"
+                                CancelText="No">
+                        <a>Cancelar</a>
+                    </Popconfirm>
+                }
+            </ActionColumn>
+        </ChildContent>
+    </Table>
+
+
+    <FormItem Label="Subtotal">
+        <Input @bind-Value="@context.Subtotal" Disabled="true" />
+    </FormItem>
+    <FormItem Label="IVA">
+        <Input @bind-Value="@context.Iva" />
+    </FormItem>
+    <FormItem Label="Total">
+        <Input @bind-Value="@context.Total" Disabled="true" />
+    </FormItem>
+    <FormItem WrapperCol="GetButtonItemLayout()">
+        <Button @onclick="save" HtmlType="submit">
+            Guardar
+        </Button>
+        <Button @onclick="cancel" HtmlType="submit" Danger>
+            Cancelar
+        </Button>
+    </FormItem>
+</Form>
+<style>
+    .save {
+        margin-right: 8px;
+    }
+</style>
+
+@code {
+
+    [Parameter]
+    public int id { get; set; }
+
+    public class Model
+    {
+        public string Size { get; set; } = AntSizeLDSType.Small;
+        public string Solicitante { get; set; } = "Elmer Yam";
+        public string Empleado { get; set; } = "José Zuarez";
+        public string Input { get; set; } = "1447";
+        public string ClaveProveedor { get; set; } = "0001";
+        public string Subtotal { get; set; } = "772";
+        public string InputArea { get; set; } = "inputArea";
+        public string Iva { get; set; } = "115,80";
+        public string Total { get; set; } = "887,80";
+        public string Comentario { get; set; } = "Ninguna";
+        public string Cascader { get; set; } = "11";
+        public DateTime? DatePicker { get; set; } = DateTime.Now;
+        public DateTime?[] RangePicker { get; set; } = new DateTime?[] { DateTime.Now, DateTime.Now.AddDays(10) };
+        public double Number { get; set; } = 1;
+        public bool Switch { get; set; } = true;
+        public string Radio { get; set; } = "Beijing";
+        public string AutoComplete { get; set; }
+        public string Name { get; set; }
+        public IEnumerable<string> Names { get; set; } = Array.Empty<string>();
+        public string Layout { get; set; } = FormLayout.Horizontal;
+    }
+
+    private Model model = new Model();
+
+    private List<CascaderNode> districts = new List<CascaderNode>
+{
+        new CascaderNode()
+        {
+            Value = "1",
+            Label = "Zhejianng",
+            Children = new []
+{
+                new CascaderNode {Value = "11", Label = "Hangzhou"},
+                new CascaderNode {Value = "12", Label = "Wenzhou"},
+            }
+        },
+        new CascaderNode()
+        {
+            Value = "2",
+            Label = "Shanghai",
+        }
+    };
+
+    private List<string> autoCompleteOptions = new List<string> { "Primary", "Junior", "Senior", "Undergraduate", "Master", "Doctor" };
+
+    record Person(string Name);
+    private List<Person> _persons = new List<Person>{
+            new Person("Metros"),
+            new Person("Kilos"),
+            new Person("Litros"),
+            new Person("Piezas"),
+        };
+
+    private void OnFinish(EditContext editContext)
+    {
+        Console.WriteLine($"Success:{JsonSerializer.Serialize(model)}");
+    }
+
+    private void OnFinishFailed(EditContext editContext)
+    {
+        Console.WriteLine($"Failed:{JsonSerializer.Serialize(model)}");
+    }
+
+    private ColLayoutParam GetFormLabelCol()
+    {
+        return model.Layout == FormLayout.Horizontal ? new ColLayoutParam { Span = "4" } : null;
+    }
+
+    private ColLayoutParam GetFormWrapperCol()
+    {
+        return model.Layout == FormLayout.Horizontal ? new ColLayoutParam { Span = "14" } : null;
+    }
+
+    private ColLayoutParam GetButtonItemLayout()
+    {
+        return model.Layout == FormLayout.Horizontal ? new ColLayoutParam { Span = "14", Offset = "4" } : null;
+    }
+
+    private async Task save()
+    {
+        //if (id != 0)
+        //await JsRuntime.InvokeAsync<object>(identifier: "editSwal");
+        //else
+        await JsRuntime.InvokeAsync<object>("blazorInterop.saveSwal");
+        NavigationManager.NavigateTo("requisiciones");
+    }
+
+    private async Task cancel()
+    {
+        await JsRuntime.InvokeAsync<object>("blazorInterop.CancelSwal");
+        NavigationManager.NavigateTo("requisiciones");
+    }
+
+    class ItemData
+    {
+        public string Clave { get; set; }
+        public string Unidad { get; set; }
+        public int Cantidad { get; set; }
+        public double Precio { get; set; }
+        public double SubTotal { get; set; }
+        public double IVA { get; set; }
+        public double TotalIVA { get; set; }
+    };
+
+    IDictionary<string, (bool edit, ItemData data)> editCache = new Dictionary<string, (bool edit, ItemData data)>();
+    ItemData[] listOfData = { };
+
+    int i = 0;
+
+    void startEdit(string id)
+    {
+        var data = editCache[id];
+        data.edit = true;
+        editCache[id] = data;
+    }
+
+    void cancelEdit(string id)
+    {
+        var data = listOfData.FirstOrDefault(item => item.Clave == id);
+        editCache[id] = new(false, data);
+    }
+
+    void saveEdit(string id)
+    {
+        var data = listOfData.FirstOrDefault(item => item.Clave == id);
+        editCache[id] = new(false, data);
+    }
+
+    void updateEditCache()
+    {
+        listOfData.ForEach(item =>
+        {
+            editCache[item.Clave] = new(true, item);
+        });
+    }
+
+    protected override void OnInitialized()
+    {
+        //listOfData = Enumerable.Range(0, 100).Select(i => new ItemData { Id = $"{i}", Name = $"Edrward {i}", Age = 32, Address = $"London Park no. {i}" }).ToArray();
+        updateEditCache();
+    }
+
+    void addArticle()
+    {
+        listOfData = listOfData.Append(new ItemData { Clave = $"{i}", Unidad = $"Edrward {i}", Cantidad = 32, Precio = 2, SubTotal = 32 * 2, IVA = 0.16, TotalIVA = 32 * 2 * 1.16 });
+        updateEditCache();
+        i++;
+    }
+}

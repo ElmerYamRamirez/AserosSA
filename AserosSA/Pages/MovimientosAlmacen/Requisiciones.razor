@@ -1,10 +1,10 @@
-﻿@page "/salidaalmacen"
+﻿@page "/requisiciones"
 @using System.ComponentModel
 @using AntDesign.TableModels
 @inject IJSRuntime JsRuntime
 
 <div class="col-sm-12" style="text-align:left;margin-top:10px;">
-    <h3>Salidas de almacen</h3>
+    <h3>Requisiciones</h3>
 </div>
 
 <div>
@@ -23,7 +23,7 @@
         </Col>
         <Col Span="3">
         <div style="text-align:right; width:87%;">
-            <a href="/AltaMovimiento" title="Agregar nueva ubicacion"><i style="margin-right:5px;">Agregar</i><span class="oi oi-plus"></span></a>
+            <a href="/altarequisicion" title="Agregar nueva ubicacion"><i style="margin-right:5px;">Agregar</i><span class="oi oi-plus"></span></a>
         </div>
         </Col>
     </Row>
@@ -40,8 +40,9 @@
     <Selection Key="@(context.Id.ToString())" />
     <Column @bind-Field="@context.Id" Sortable />
     <Column @bind-Field="@context.Date" Format="yyyy-MM-dd" Sortable />
-    <Column @bind-Field="@context.Articulo" Sortable />
-    <Column @bind-Field="@context.Cantidad" Sortable />
+    <Column @bind-Field="@context.Date2" Format="yyyy-MM-dd" Sortable />
+    <Column @bind-Field="@context.Solicitante" Sortable />
+    <Column @bind-Field="@context.Empleado" Sortable />
     <ActionColumn>
         <Space>
             <a title="Eliminar" @onclick="()=>Delete(context.Id)">
@@ -91,14 +92,18 @@
 
     public class WeatherForecast
     {
+        [DisplayName("Número requisiciones")]
         public int Id { get; set; }
 
-        [DisplayName("Fecha")]
+        [DisplayName("Fecha requisición")]
         public DateTime? Date { get; set; }
 
-        public string Articulo { get; set; }
+        [DisplayName("Fecha recibido")]
+        public DateTime? Date2 { get; set; }
 
-        public int Cantidad { get; set; }
+        public string Solicitante { get; set; }
+
+        public string Empleado { get; set; }
 
         public double Precio { get; set; }
 
@@ -107,12 +112,12 @@
 
     private static readonly string[] Articulos = new[]
     {
-        "Papel", "Lingotes", "Fierro", "Gas"
+        "Elmer Yam", "Jose Moo", "Maria Ramirez", "Maximo Requena"
     };
 
-    private static readonly int[] Cantidades = new[]
+    private static readonly string[] Cantidades = new[]
     {
-        3, 2, 5, 7
+        "Elmer Serrano", "Jose Felix", "Maria Ramirez", "Maximo Yam"
     };
 
     public async Task OnChange(QueryModel<WeatherForecast> queryModel)
@@ -130,8 +135,9 @@
             {
                 Id = index,
                 Date = DateTime.Now.AddDays(index),
-                Articulo = Articulos[rng.Next(Articulos.Length)],
-                Cantidad = Cantidades[rng.Next(Cantidades.Length)],
+                Date2 = DateTime.Now.AddDays(index + 10),
+                Solicitante = Articulos[rng.Next(Articulos.Length)],
+                Empleado = Cantidades[rng.Next(Cantidades.Length)],
                 Precio = 30,
                 Total = 60
 
