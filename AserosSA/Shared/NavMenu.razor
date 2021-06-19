@@ -75,6 +75,7 @@
     <Menu Mode="MenuMode.Inline"
           DefaultSelectedKeys=@(new[] {"1"})
           DefaultOpenKeys=@(new[] {"sub1"})
+          Theme="MenuTheme.Light"
           Style="height: 100%; border-right: 0;">
         <MenuItem Key="1"><NavLink href="/listaArticulos">Artículos</NavLink></MenuItem>
         <SubMenu Key="sub1" Title=Catálogos>
@@ -83,10 +84,10 @@
             <MenuItem Key="4"><NavLink href="/ubicacionProductos">Ubicación</NavLink></MenuItem>
         </SubMenu>
         <SubMenu Key="sub2" Title=Movimientos>
-            <MenuItem Key="5"><NavLink href="/">Entradas</NavLink></MenuItem>
-            <MenuItem Key="6"><NavLink href="/">Salidas</NavLink></MenuItem>
-            <MenuItem Key="7">option11</MenuItem>
-            <MenuItem Key="8">option12</MenuItem>
+            <MenuItem Key="5"><NavLink href="/facturas">Facturas</NavLink></MenuItem>
+            <MenuItem Key="6"><NavLink href="/devolucionfacturas">Devolución Facturas</NavLink></MenuItem>
+            <MenuItem Key="7" ><NavLink href="/requisiciones">Requisición</NavLink></MenuItem>
+            <MenuItem Key="8"><NavLink href="/cancelacionrequisicion">Cancelación Requisición</NavLink></MenuItem>
         </SubMenu>
         <SubMenu Key="sub3" Title=Gráficas>
             <MenuItem Key="9"><NavLink href="/">Consumo de valor </NavLink></MenuItem>
