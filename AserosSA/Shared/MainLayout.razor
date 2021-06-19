@@ -1,24 +1,22 @@
 ﻿@inherits LayoutComponentBase
-<!--
-<div class="page">
-
-    <NavMenu />
-
-    <div class="main">
-        <div class="top-row px-4">
-            <a href="http://blazor.net" target="_blank" class="ml-md-auto">About</a>
-        </div>
-
-        <div class="content px-4">
-            @Body
-        </div>
-    </div>
-</div>
--->
+@inject NavigationManager NavigationManager
 
 <Layout Style="height: 100vh; width: 100vw">
-    <Header Class="header">
-        <img src="/Images/CE_AcerosSA_Logo.jpg" style="width: 40px; height: 40px;" />
+    <Header Class="header" Style="background-color: #01008c">
+        <div Style=" padding: 0 ; text-align:right;">
+            <img src="/Images/CE_AcerosSA_Logo.jpg" style="width: 40px; height: 40px; margin-right:980px; " />
+            <Button Size="small"
+                    Style="margin:0 16px; vertical-align: middle;"
+                    OnClick="_=>changeUser()">
+                Usuario
+            </Button>
+            <Avatar Style="@($"background-color: {color}; vertical-align: middle;")" Size="large">
+                @user
+            </Avatar>
+            <Button Size="small" Type="link" OnClick='()=> { NavigationManager.NavigateTo("/");}'>
+                Cerrar Sesión
+            </Button>
+        </div>
     </Header>
     <Layout>
         <NavMenu />
@@ -42,3 +40,17 @@
         background: #fff;
     }
 </style>
+
+@code
+{ private static string[] userList = { "Esmeralda", "Elmer", "Nidia" };
+    private static string[] colorList = { "#f56a00", "#7265e6", "#ffbf00" };
+
+    private string user { get; set; } = userList[0];
+    private string color { get; set; } = colorList[0];
+
+    private void changeUser()
+    {
+        var index = Array.IndexOf(userList, user);
+        user = index < userList.Length - 1 ? userList[index + 1] : userList[0];
+        color = index < colorList.Length - 1 ? colorList[index + 1] : colorList[0];
+    } }
