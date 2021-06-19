@@ -1,0 +1,119 @@
+﻿@page "/consumovalor"
+
+@using AntDesign.Charts
+@using Title = AntDesign.Charts.Title
+@inject NavigationManager NavigationManager
+@inject HttpClient HttpClient
+@inject IJSRuntime JsRuntime
+
+<div class="col-sm-12" style="text-align:left;margin-top:10px;">
+    <h3>Grafica de Consumo por Valor</h3>
+</div>
+<Tabs ActiveKeyChanged="OnTabChanged">
+    <TabPane Key="1">
+        <ChildContent>
+            <AntDesign.Charts.Column Data="data1" Config="config1" />
+        </ChildContent>
+    </TabPane>
+</Tabs>
+<div class="col-sm-12" style="text-align:center;margin-top:10px;">
+    <h5>Articulos</h5>
+</div>
+
+<div class="col-sm-12" style="text-align:right; margin-top:10px;">
+    <Button Type="primary" @onclick="downloadMessage">Descargar</Button>
+</div>
+
+@code{ IChartComponent chart5;
+
+    IChartComponent chart6;
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
+
+    private async void OnTabChanged(string activeKey)
+    {
+    }
+
+    #region  #endregion graficaValor
+
+    object[] data1 =
+{
+        new
+        {
+            type = "Lamiacion",
+            sales = 38
+        },
+        new
+        {
+            type = "Materia Prima",
+            sales = 52
+        },
+        new
+        {
+            type = "Refacciones",
+            sales = 61
+        },
+        new
+        {
+            type = "Productos de Varios",
+            sales = 145
+        },
+        new
+        {
+            type = "Aceria",
+            sales = 48
+        },
+        new
+        {
+            type = "Papeleria",
+            sales = 38
+        },
+        new
+        {
+            type = "Vaciado",
+            sales = 38
+        },
+        new
+        {
+            type = "Acondicionado",
+            sales = 38
+        }
+    };
+
+    #endregion  #endregion graficaValor
+
+    ColumnConfig config1 = new ColumnConfig
+    {
+        Title = new Title
+        {
+            Visible = true,
+            Text = "Grafica Consumo de valor"
+        },
+        ForceFit = true,
+        Padding = "auto",
+        XField = "type",
+        YField = "sales",
+        Meta = new
+        {
+            Type = new
+            {
+                Alias = "categoria"
+            },
+            Sales = new
+            {
+                Alias = "cantidad"
+            }
+        }
+    };
+
+    public async Task downloadMessage()
+    {
+        await JsRuntime.InvokeAsync<object>(identifier: "swal", "Descargando Reporte...");
+    }
+
+}
