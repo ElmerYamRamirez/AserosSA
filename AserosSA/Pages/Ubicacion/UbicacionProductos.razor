@@ -35,7 +35,6 @@
     <Selection Key="@(context.Id.ToString())" />
 
     <AntDesign.Column @bind-Field="@context.Id" Sortable />
-    <AntDesign.Column @bind-Field="@context.Producto" Sortable />
     <AntDesign.Column @bind-Field="@context.Zona" Sortable />
     <AntDesign.Column @bind-Field="@context.Pasillo" Sortable />
     <AntDesign.Column @bind-Field="@context.Estante" Sortable />
@@ -84,10 +83,8 @@
 
     public class Ubicaciones
     {
+        [DisplayName("Clave")]
         public int Id { get; set; }
-
-        [DisplayName("Producto")]
-        public string? Producto { get; set; }
 
         [DisplayName("Zona")]
         public string Zona { get; set; }
@@ -102,11 +99,6 @@
         public string Nivel { get; set; }
 
     }
-
-    private static readonly string[] ListProductos = new[]
-{
-        "Tornillos", "Tuercas", "Rodamientos", "Flechas", "Baleros", "Abrazaderas", "Electrodos de Grafito", "Refactorio"
-    };
     private static readonly string[] Zonas = new[]
     {
         "1", "2", "3", "4", "5", "6", "7", "8"
@@ -136,7 +128,6 @@
             return new Ubicaciones
             {
                 Id = index,
-                Producto = ListProductos[rng.Next(ListProductos.Length)],
                 Zona = Zonas[rng.Next(Zonas.Length)],
                 Pasillo = Pasillos[rng.Next(Pasillos.Length)],
                 Estante = Estantes[rng.Next(Estantes.Length)],

@@ -43,14 +43,9 @@
 
     <Selection Key="@(context.Id.ToString())" />
 
-    <AntDesign.Column @bind-Field="@context.Id" Sortable />
-    <AntDesign.Column @bind-Field="@context.ClaveAlmacen" Sortable />
-    <AntDesign.Column @bind-Field="@context.ClaveGrupo" Sortable />
-    <AntDesign.Column @bind-Field="@context.ClaveArticulo" Sortable />
+    <AntDesign.Column @bind-Field="@context.ClavePrincipal" Sortable />
     <AntDesign.Column @bind-Field="@context.Descripcion" Sortable />
     <AntDesign.Column @bind-Field="@context.Marca" Sortable />
-    <AntDesign.Column @bind-Field="@context.ClaveUbicacion" Sortable />
-    <AntDesign.Column @bind-Field="@context.ClaveUnidad" Sortable />
     <AntDesign.Column @bind-Field="@context.Maximo" Sortable />
     <AntDesign.Column @bind-Field="@context.PuntoReorden" Sortable />
     <AntDesign.Column @bind-Field="@context.Minimo" Sortable />
@@ -125,14 +120,8 @@
     {
         public int Id { get; set; }
 
-        [DisplayName("ClaveAlmacen")]
-        public string? ClaveAlmacen { get; set; }
-
-        [DisplayName("ClaveGrupo")]
-        public string ClaveGrupo { get; set; }
-
-        [DisplayName("ClaveArticulo")]
-        public string ClaveArticulo { get; set; }
+        [DisplayName("Clave")]
+        public string? ClavePrincipal { get; set; }
 
         [DisplayName("Descripcion")]
         public string Descripcion { get; set; }
@@ -140,16 +129,10 @@
         [DisplayName("Marca")]
         public string Marca { get; set; }
 
-        [DisplayName("ClaveUbicacion")]
-        public string ClaveUbicacion { get; set; }
-
-        [DisplayName("ClaveUnidad")]
-        public string ClaveUnidad { get; set; }
-
         [DisplayName("Maximo")]
         public string Maximo { get; set; }
 
-        [DisplayName("PuntoReorden")]
+        [DisplayName("Punto de Reorden")]
         public string PuntoReorden { get; set; }
 
         [DisplayName("Minimo")]
@@ -157,17 +140,9 @@
 
     }
 
-    private static readonly string[] ClavesAlmacenes = new[]
+    private static readonly string[] ClavesPrincipales = new[]
     {
-        "100", "150", "200", "250", "300", "350", "400", "450", "500", "550", "600"
-    };
-    private static readonly string[] ClavesGrupos = new[]
-    {
-        "PAP", "CLV"
-    };
-    private static readonly string[] ClavesArticulos = new[]
-    {
-        "PAPELERIA", "CLAVOS"
+        "100-PAP-001-PZA", "150-CLV-002-PZA", "200-PAP-001-PZA", "250-CLV-002-PZA", "300-PAP-001-PZA", "350-CLV-002-PZA", "400-PAP-001-PZA"
     };
     private static readonly string[] Descripciones = new[]
     {
@@ -176,14 +151,6 @@
     private static readonly string[] Marcas = new[]
     {
         "IMPERIAL", "POP", "HILLMAN", "ARROW", "MEGA"
-    };
-    private static readonly string[] ClavesUbicaciones = new[]
-    {
-        "001", "002", "003", "004", "005"
-    };
-    private static readonly string[] ClavesUnidades = new[]
-    {
-        "PZA", "PZA", "PZA", "PZA", "PZA"
     };
     private static readonly string[] Maximos = new[]
     {
@@ -207,13 +174,9 @@
             return new CasosDeUso
             {
                 Id = index,
-                ClaveAlmacen = ClavesAlmacenes[rng.Next(ClavesAlmacenes.Length)],
-                ClaveGrupo = ClavesGrupos[rng.Next(ClavesGrupos.Length)],
-                ClaveArticulo = ClavesArticulos[rng.Next(ClavesArticulos.Length)],
+                ClavePrincipal = ClavesPrincipales[rng.Next(ClavesPrincipales.Length)],
                 Descripcion = Descripciones[rng.Next(Descripciones.Length)],
                 Marca = Marcas[rng.Next(Marcas.Length)],
-                ClaveUbicacion = ClavesUbicaciones[rng.Next(ClavesUbicaciones.Length)],
-                ClaveUnidad = ClavesUnidades[rng.Next(ClavesUbicaciones.Length)],
                 Maximo = Maximos[rng.Next(Maximos.Length)],
                 PuntoReorden = PuntosReordenes[rng.Next(PuntosReordenes.Length)],
                 Minimo = Minimos[rng.Next(Minimos.Length)],
