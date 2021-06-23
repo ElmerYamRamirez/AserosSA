@@ -1,9 +1,13 @@
 ﻿var blazorInterop = blazorInterop || {};
 
-blazorInterop.deleteSwal = function () {
-    swal({
+blazorInterop.elmer = function () {
+    return true;
+};
+
+blazorInterop.deleteSwal = function (descripcion) {
+    return swal({
         title: "¿Estas seguro,",
-        text: "que deseas eliminarlo?",
+        text: `que deseas eliminar ${descripcion}?`,
         icon: "warning",
         buttons: true,
         dangerMode: true,
@@ -12,8 +16,10 @@ blazorInterop.deleteSwal = function () {
             swal("¡Ha sido eliminado con éxito!", {
                 icon: "success",
             });
+            return true;
         }else {
             swal("¡Tus datos permanecen Activos!");
+            return false;
         }
     });
 };
