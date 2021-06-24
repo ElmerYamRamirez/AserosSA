@@ -40,8 +40,8 @@ else
 
 @code
 {
-    [Parameter]
-    public int id { get; set; }
+        [Parameter]
+        public int id { get; set; }
 
     private AlmacenModel Almacen = new AlmacenModel();
     List<AlmacenModel> almacenes = null;
@@ -50,8 +50,9 @@ else
     {
         almacenes = await localStorage.GetItemAsync<List<AlmacenModel>>("Almacenes");
 
-        //if (id != 0) {
-        //}
+        if (id != 0) {
+            Almacen = almacenes.Find(x=>x.Id == id);
+        }
     }
 
     private void OnFinish(EditContext editContext)
@@ -66,8 +67,11 @@ else
 
     private async Task save()
     {
-        Almacen.Id = almacenes.Count + 1;
-        almacenes.Add(Almacen);
+        if (Almacen.Id == 0)
+        {
+            Almacen.Id = almacenes.Count + 1;
+            almacenes.Add(Almacen);
+        }
         await localStorage.SetItemAsync<List<AlmacenModel>>("Almacenes", almacenes);
         await JsRuntime.InvokeAsync<object>("blazorInterop.saveSwal");
         NavigationManager.NavigateTo("almacen");
