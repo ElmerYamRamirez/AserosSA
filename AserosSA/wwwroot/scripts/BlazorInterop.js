@@ -1,7 +1,19 @@
 ﻿var blazorInterop = blazorInterop || {};
+var person = [
+    {
+        id: 1,
+        nombre: "Doe",
+        descripcion: "elmer"
+    },
+    {
+        id: 2,
+        nombre: "Doe yam",
+        descripcion: "si"
+    }
+];
 
 blazorInterop.elmer = function () {
-    return true;
+    return person;
 };
 
 blazorInterop.deleteSwal = function (descripcion) {

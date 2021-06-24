@@ -1,18 +1,21 @@
 ﻿@page "/altaalmacen"
-@page "/altaAlmacen/{id:int}"
+@page "/editarAlmacen/{id:int}"
 @using System.Text.Json;
 @using Models;
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsRuntime
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
 
-@if (id != 0){
-    <h3>Editar de Almacen</h3>
+@if (id != 0)
+{
+    <h3>Editar Almacen</h3>
 }
-else { 
+else
+{
     <h3>Alta Almacen</h3>
 }
 
-<Form Model="@AlmacenModel"
+<Form Model="@Almacen"
       LabelColSpan="24"
       WrapperColSpan="8"
       OnFinish="OnFinish"
@@ -40,33 +43,32 @@ else {
     [Parameter]
     public int id { get; set; }
 
-    private AlmacenModel AlmacenModel = new AlmacenModel();
-    
-    protected override void OnInitialized()
-    {
-    }
+    private AlmacenModel Almacen = new AlmacenModel();
+    List<AlmacenModel> almacenes = null;
 
-    record Person(string Name);
-    private List<Person> _persons = new List<Person>
+    protected override async Task OnInitializedAsync()
     {
-            new Person("John"),
-            new Person("Lucy"),
-            new Person("Jack"),
-            new Person("Emily"),
-    };
+        almacenes = await localStorage.GetItemAsync<List<AlmacenModel>>("Almacenes");
+
+        //if (id != 0) {
+        //}
+    }
 
     private void OnFinish(EditContext editContext)
     {
-        Console.WriteLine($"Success:{JsonSerializer.Serialize(AlmacenModel)}");
+        Console.WriteLine($"Success:{JsonSerializer.Serialize(Almacen)}");
     }
 
     private void OnFinishFailed(EditContext editContext)
     {
-        Console.WriteLine($"Failed:{JsonSerializer.Serialize(AlmacenModel)}");
+        Console.WriteLine($"Failed:{JsonSerializer.Serialize(Almacen)}");
     }
 
     private async Task save()
     {
+        Almacen.Id = almacenes.Count + 1;
+        almacenes.Add(Almacen);
+        await localStorage.SetItemAsync<List<AlmacenModel>>("Almacenes", almacenes);
         await JsRuntime.InvokeAsync<object>("blazorInterop.saveSwal");
         NavigationManager.NavigateTo("almacen");
     }

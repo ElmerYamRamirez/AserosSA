@@ -5,6 +5,7 @@
 @using AntDesign.TableModels
 @inject HttpClient Http
 @inject IJSRuntime JsRuntime
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
 
 <div class="col-sm-12" style="text-align:left;margin-top:10px;">
     <h3>Almacenes</h3>
@@ -27,7 +28,7 @@
         </Col>
         <Col Span="3">
         <div style="text-align:right; width:87%;">
-            <a href="/AltaAlmacen" title="Agregar nuevo almacen"><i style="margin-right:5px;">Agregar</i><span class="oi oi-plus"></span></a>
+            <a title="Agregar nuevo almacen" @onclick="AltaAlmacen"><i style="margin-right:5px;" >Agregar</i><span class="oi oi-plus"></span></a>
         </div>
         </Col>
     </Row>
@@ -48,7 +49,7 @@
     <Column @bind-Field="@context.Descripcion" Sortable />
     <ActionColumn>
         <Space>
-            <a title="Editar" href="/altaalmacen/1">
+            <a title="Editar" @onclick="()=>Edit(context.Id)">
                 <span class="oi oi-pencil"></span>
             </a>
         </Space>
@@ -72,7 +73,7 @@
     [Inject]
     public NavigationManager NavManager { get; set; }
 
-    List<AlmacenModel> almacenes;
+    List<AlmacenModel> almacenes = null;
 
     IEnumerable<AlmacenModel> selectedRows;
     ITable table;
@@ -81,18 +82,28 @@
     int _pageSize = 4;
     int _total = 0;
     private string txtValue { get; set; }
-
     List<Person> _list;
     string _selectedValue1;
 
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        almacenes = new List<AlmacenModel> {
+
+        /*almacenes = new List<AlmacenModel> {
             new AlmacenModel{ Id = 1, Nombre = "MP", Descripcion = "Materia Prima"},
             new AlmacenModel{ Id = 2, Nombre = "REFAC", Descripcion = "Refacciones"},
             new AlmacenModel{ Id = 3, Nombre = "PV", Descripcion = "Productos Varios"}
-        };
+        };*/
+
+        almacenes = await localStorage.GetItemAsync<List<AlmacenModel>>("Almacenes");
+
+        if (almacenes == null) {
+            almacenes = new List<AlmacenModel> {
+                new AlmacenModel{ Id = 1, Nombre = "MP", Descripcion = "Materia Prima"},
+                new AlmacenModel{ Id = 2, Nombre = "REFAC", Descripcion = "Refacciones"},
+                new AlmacenModel{ Id = 3, Nombre = "PV", Descripcion = "Productos Varios"}
+            };
+        }
 
         _total = almacenes.Count;
 
@@ -100,7 +111,6 @@
             new Person {Value = "Nombre", Name = "Nombre"},
             new Person {Value = "Descripción", Name = "Descripción"}
         };
-
     }
 
     class Person
@@ -138,13 +148,15 @@
         }
     }
 
-    private void Edit(int id)
+    private async Task Edit(int id)
     {
-        NavManager.NavigateTo($"altaalmacen/{id}");
+        await localStorage.SetItemAsync<List<AlmacenModel>>("Almacenes", almacenes);
+        NavManager.NavigateTo($"editarAlmacen/{id}");
     }
 
-    public void AltaAlmacen()
+    public async Task AltaAlmacen()
     {
+        await localStorage.SetItemAsync<List<AlmacenModel>>("Almacenes", almacenes);
         NavManager.NavigateTo("altaalmacen");
     }
 
