@@ -40,8 +40,8 @@ else
 
 @code
 {
-        [Parameter]
-        public int id { get; set; }
+    [Parameter]
+    public int id { get; set; }
 
     private AlmacenModel Almacen = new AlmacenModel();
     List<AlmacenModel> almacenes = null;
@@ -69,7 +69,8 @@ else
     {
         if (Almacen.Id == 0)
         {
-            Almacen.Id = almacenes.Count + 1;
+            Almacen.Id = almacenes[almacenes.Count - 1].Id + 1;
+            //Almacen.Id = almacenes.Count + 1;
             almacenes.Add(Almacen);
         }
         await localStorage.SetItemAsync<List<AlmacenModel>>("Almacenes", almacenes);
