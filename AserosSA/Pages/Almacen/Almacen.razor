@@ -74,6 +74,7 @@
     public NavigationManager NavManager { get; set; }
 
     List<AlmacenModel> almacenes = null;
+    List<AlmacenModel> busquedaAlmacen = null;
 
     IEnumerable<AlmacenModel> selectedRows;
     ITable table;
@@ -109,7 +110,7 @@
 
         _list = new List<Person> {
             new Person {Value = "Nombre", Name = "Nombre"},
-            new Person {Value = "Descripción", Name = "Descripción"}
+            new Person {Value = "Descripcion", Name = "Descripción"}
         };
     }
 
@@ -162,6 +163,23 @@
 
     private async Task buscar()
     {
+        almacenes = await localStorage.GetItemAsync<List<AlmacenModel>>("Almacenes");
+
+        if (txtValue != null)
+        {
+            if (_selectedValue1.Equals("Nombre"))
+            {
+                almacenes = almacenes.FindAll(x => x.Nombre.Contains(txtValue));
+            }
+            else if (_selectedValue1.Equals("Descripcion"))
+            {
+                almacenes = almacenes.FindAll(x => x.Descripcion.Contains(txtValue));
+            }
+            else
+            {
+                await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Selecciona un filtro");
+            }
+        }
         await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Bucando...{txtValue}");
         //await JsRuntime.InvokeAsync<Object>(identifier: "buscarSwal");
     }
