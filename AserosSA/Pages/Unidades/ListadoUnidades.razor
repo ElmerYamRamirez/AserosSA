@@ -13,8 +13,18 @@
     <h3>Unidades</h3>
 </div>
 <div>
-    <Row Style="margin-bottom:10px;">
-        <Col Span="9" Offset="12">
+    <Row Style="margin-bottom:10px;" Justify="end">
+        <Col Span="3">
+        <Select DataSource="@_list"
+                @bind-Value="@_selectedValue1"
+                ValueName="@nameof(Person.Value)"
+                LabelName="@nameof(Person.Name)"
+                DisabledName="@nameof(Person.IsDisabled)"
+                Style="width:120px"
+                OnSelectedItemChanged="OnSelectedItemChangedHandler">
+        </Select>
+        </Col>
+        <Col Span="9">
         <Search EnterButton="true" OnSearch="buscar" @bind-Value="@txtValue" Placeholder="Unidad" />
         </Col>
         <Col Span="3">
