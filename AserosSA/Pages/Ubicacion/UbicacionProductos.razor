@@ -1,7 +1,11 @@
 ﻿@page "/ubicacionProductos"
 
-@inject IJSRuntime JsRuntime
 @using System.ComponentModel
+@using Models
+@using AntDesign.TableModels
+@inject HttpClient Http
+@inject IJSRuntime JsRuntime
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject NavigationManager NavigationManager
 @inject ModalService _modalService
 @inject MessageService _message
@@ -11,45 +15,50 @@
 </div>
 
 <div>
-    <Row Style="margin-bottom:10px;">
-        <Col Span="9" Offset="12">
-        <Search EnterButton="true" OnSearch="buscar" @bind-Value="@txtValue" Placeholder="Buscar ubicación" />
+    <Row Style="margin-bottom:10px;" Justify="end">
+        <Col Span="3">
+        <Select DataSource="@_list"
+                @bind-Value="@_selectedValue1"
+                ValueName="@nameof(Info.Value)"
+                LabelName="@nameof(Info.Name)"
+                DisabledName="@nameof(Info.IsDisabled)"
+                Style="width:120px"
+                OnSelectedItemChanged="OnSelectedItemChangedHandler">
+        </Select>
+        </Col>
+        <Col Span="9">
+        <Search EnterButton="true" OnSearch="buscar" @bind-Value="@txtValue" Placeholder="Buscar" />
         </Col>
         <Col Span="3">
         <div style="text-align:right; width:87%;">
-            <a href="/AltaUbicacionProductos" title="Agregar nueva ubicacion"><i style="margin-right:5px;">Agregar</i><span class="oi oi-plus"></span></a>
+            <a title="Agregar nuevo almacen" @onclick="AltaUbicacion"><i style="margin-right:5px;">Agregar</i><span class="oi oi-plus"></span></a>
         </div>
         </Col>
     </Row>
 </div>
 
-
 <Table @ref="table"
-       TItem="Ubicaciones"
+       TItem="UbicacionModel"
        DataSource="@ubicaciones"
        Total="_total"
        @bind-PageIndex="_pageIndex"
        @bind-PageSize="_pageSize"
-       @bind-SelectedRows="selectedRows">
-
+       @bind-SelectedRows="selectedRows"
+       OnChange="OnChange">
     <Selection Key="@(context.Id.ToString())" />
-
-    <AntDesign.Column @bind-Field="@context.Id" Sortable />
-    <AntDesign.Column @bind-Field="@context.Zona" Sortable />
-    <AntDesign.Column @bind-Field="@context.Pasillo" Sortable />
-    <AntDesign.Column @bind-Field="@context.Estante" Sortable />
-    <AntDesign.Column @bind-Field="@context.Nivel" Sortable />
-
+    <Column Title="Clave" @bind-Field="@context.Id" Sortable />
+    <Column @bind-Field="@context.Zona" Sortable />
+    <Column @bind-Field="@context.Estante" Sortable />
     <ActionColumn>
         <Space>
-            <a href="/AltaUbicacionProductos/1" title="Editar">
+            <a title="Editar" @onclick="() => Edit(context.Id)">
                 <span class="oi oi-pencil"></span>
             </a>
         </Space>
     </ActionColumn>
     <ActionColumn>
         <Space>
-            <a title="Eliminar" @onclick="Eliminar">
+            <a title="Eliminar" @onclick="() => Delete(context)">
                 <span class="oi oi-trash"></span>
             </a>
         </Space>
@@ -60,103 +69,115 @@
 <br />
 <p>Página: @_pageIndex | Registros: @_pageSize | Total: @_total</p>
 
-
-
-
-
+@using System.Text.Json;
 @code {
 
-    Ubicaciones[] ubicaciones;
+    [Inject]
+    public NavigationManager NavManager { get; set; }
 
-    IEnumerable<Ubicaciones> selectedRows;
+    List<UbicacionModel> ubicaciones = null;
+    List<UbicacionModel> busquedaUbicacion = null;
+
+    IEnumerable<UbicacionModel> selectedRows;
     ITable table;
 
     int _pageIndex = 1;
-    int _pageSize = 5;
+    int _pageSize = 4;
     int _total = 0;
+    private string txtValue { get; set; }
+    List<Info> _list;
+    string _selectedValue1;
 
     protected override async Task OnInitializedAsync()
     {
-        ubicaciones = await GetForecastAsync(_pageIndex, _pageSize);
-        _total = ubicaciones.Length;
-    }
+        ubicaciones = await localStorage.GetItemAsync<List<UbicacionModel>>("Ubicaciones");
 
-    public class Ubicaciones
-    {
-        [DisplayName("Clave")]
-        public int Id { get; set; }
-
-        [DisplayName("Zona")]
-        public string Zona { get; set; }
-
-        [DisplayName("Pasillo")]
-        public string Pasillo { get; set; }
-
-        [DisplayName("Estante")]
-        public string Estante { get; set; }
-
-        [DisplayName("Nivel")]
-        public string Nivel { get; set; }
-
-    }
-    private static readonly string[] Zonas = new[]
-    {
-        "1", "2", "3", "4", "5", "6", "7", "8"
-    };
-
-    private static readonly string[] Pasillos = new[]
-    {
-        "A", "B", "C", "D", "E", "F", "G", "H"
-    };
-
-    private static readonly string[] Estantes = new[]
-    {
-        "001", "002", "03", "04", "05"
-    };
-
-    private static readonly string[] Niveles = new[]
-    {
-        "01", "02", "03"
-    };
-
-    public Task<Ubicaciones[]> GetForecastAsync(int pageIndex, int pageSize)
-    {
-        var rng = new Random();
-        return Task.FromResult(Enumerable.Range((pageIndex - 1) * pageSize + 1, 11).Select(index =>
+        if (ubicaciones == null)
         {
-
-            return new Ubicaciones
+            ubicaciones = new List<UbicacionModel>
             {
-                Id = index,
-                Zona = Zonas[rng.Next(Zonas.Length)],
-                Pasillo = Pasillos[rng.Next(Pasillos.Length)],
-                Estante = Estantes[rng.Next(Estantes.Length)],
-                Nivel = Niveles[rng.Next(Niveles.Length)],
+                new UbicacionModel{ Id = 1, Zona = "Zon1", Estante = "Est1" },
+                new UbicacionModel{ Id = 2, Zona = "Zon2", Estante = "Est2" },
+                new UbicacionModel{ Id = 3, Zona = "Zon3", Estante = "Est3" }
             };
-        }).ToArray());
+        }
+
+        _total = ubicaciones.Count;
+
+        _list = new List<Info> {
+              new Info {Value = "Zona", Name = "Zona"},
+            new Info {Value = "Estante", Name = "Estante"}
+        };
     }
 
-    public async Task Eliminar()
+    class Info
     {
-        //await JsRuntime.InvokeAsync<string>(identifier: "cancelSwal");
-        var isTrue = await _modalService.ConfirmAsync(new ConfirmOptions()
-        {
-            Title = "Elimar",
-            Icon =@<Icon Type="exclamation-circle" Theme="Outline"></Icon>,
-            Content = "¿Estas seguro que deseas eliminar esta ubicacion?",
-            OkText = "Si",
-            CancelText = "Cancelar"
-        });
-
-        if (isTrue)
-        NavigationManager.NavigateTo("/ubicacionProductos");
+        public string Value { get; set; }
+        public string Name { get; set; }
+        public bool IsDisabled { get; set; }
     }
 
+    private void OnSelectedItemChangedHandler(Info value)
+    {
+        Console.WriteLine($"selected: ${value?.Name}");
+    }
 
-    private string txtValue { get; set; }
+    public async Task OnChange(QueryModel<UbicacionModel> queryModel)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(queryModel));
+    }
+
+    public void RemoveSelection(int id)
+    {
+        var selected = selectedRows.Where(x => x.Id != id);
+        selectedRows = selected;
+    }
+
+    private async Task Delete(UbicacionModel item)
+    {
+        bool borrarUbicacion;
+        borrarUbicacion = await JsRuntime.InvokeAsync<bool>("blazorInterop.deleteSwal", item.Zona);
+        if (borrarUbicacion)
+        {
+            ubicaciones.Remove(item);
+            _total = ubicaciones.Count;
+        }
+    }
+
+    private async Task Edit(int id)
+    {
+        await localStorage.SetItemAsync<List<UbicacionModel>>("Ubicaciones", ubicaciones);
+        NavManager.NavigateTo($"editarUbicacion/{id}");
+    }
+
+    public async Task AltaUbicacion()
+    {
+        await localStorage.SetItemAsync<List<UbicacionModel>>("Ubicaciones", ubicaciones);
+        NavManager.NavigateTo("altaubicacion");
+    }
+
     private async Task buscar()
     {
+        ubicaciones = await localStorage.GetItemAsync<List<UbicacionModel>>("Ubicaciones");
+
+        if (txtValue != null)
+        {
+            if (_selectedValue1.Equals("Zona"))
+            {
+                ubicaciones = ubicaciones.FindAll(x => x.Zona.Contains(txtValue));
+            }
+            else if (_selectedValue1.Equals("Estante"))
+            {
+                ubicaciones = ubicaciones.FindAll(x => x.Estante.Contains(txtValue));
+            }
+            else
+            {
+                await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Selecciona un filtro");
+            }
+        }
         await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Bucando...{txtValue}");
+
     }
+
 }
 

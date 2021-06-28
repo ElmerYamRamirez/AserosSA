@@ -1,12 +1,46 @@
-﻿@page "/AltaUbicacionProductos"
-@page "/AltaUbicacionProductos/{id:int}"
-@inject IJSRuntime JsRuntime
+﻿@page "/altaubicacion"
+@page "/editarUbicacion/{id:int}"
+@using System.Text.Json;
+@using Models;
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject ModalService _modalService
 @inject MessageService _message
 
+@if (id != 0)
+{
+    <h3>Editar Ubicación</h3>
+}
+else
+{
+    <h3>Alta Ubicación</h3>
+}
 
-<div class="rounded w-75 bg-light mx-auto" style="margin:15px;">
+<Form Model="@Ubicacion"
+      LabelColSpan="24"
+      WrapperColSpan="8"
+      OnFinish="OnFinish"
+      OnFinishFailed="OnFinishFailed"
+      Size="ntSizeLDSType.Small">
+
+    <FormItem Label="Zona">
+        <Input @bind-Value="@context.Zona" />
+    </FormItem>
+    <FormItem Label="Estante">
+        <TextArea @bind-Value="@context.Estante" />
+    </FormItem>
+    <FormItem WrapperColSpan="16">
+        <Button @onclick="save" HtmlType="submit">
+            Guardar
+        </Button>
+        <Button @onclick="cancel" HtmlType="submit" Danger>
+            Cancelar
+        </Button>
+    </FormItem>
+</Form>
+
+<!--<div class="rounded w-75 bg-light mx-auto" style="margin:15px;">
     <h3 class="text-center">Ubicaciones</h3>
     <div class="row">
         <div class="col-md-1"></div>
@@ -46,52 +80,51 @@
             <Button Type="default" @onclick="cancel" Danger>Cancelar</Button>
         </div>
     </div>
-</div>
+</div>-->
 
 @code {
     [Parameter]
     public int id { get; set; }
 
-    public String saveValue { get; set; }
+    private UbicacionModel Ubicacion = new UbicacionModel();
+    List<UbicacionModel> ubicaciones = null;
 
     protected override async Task OnInitializedAsync()
     {
+        ubicaciones = await localStorage.GetItemAsync<List<UbicacionModel>>("Ubicaciones");
+
         if (id != 0)
         {
-            saveValue = "Editar";
+            Ubicacion = ubicaciones.Find(x => x.Id == id);
         }
-        else
+    }
+
+    private void OnFinish(EditContext editContext)
+    {
+        Console.WriteLine($"Success:{JsonSerializer.Serialize(Ubicacion)}");
+    }
+
+    private void OnFinishFailed(EditContext editContext)
+    {
+        Console.WriteLine($"Failed:{JsonSerializer.Serialize(Ubicacion)}");
+    }
+
+    private async Task save()
+    {
+        if (Ubicacion.Id == 0)
         {
-            saveValue = "Guardar";
+            Ubicacion.Id = ubicaciones[ubicaciones.Count - 1].Id + 1;
+            ubicaciones.Add(Ubicacion);
         }
-
+        await localStorage.SetItemAsync<List<UbicacionModel>>("Ubicaciones", ubicaciones);
+        await JsRuntime.InvokeAsync<object>("blazorInterop.saveSwal");
+        NavigationManager.NavigateTo("ubicacionProductos");
     }
 
-    public async Task savedMessage()
+    private async Task cancel()
     {
-        if (id != 0)
-            await JsRuntime.InvokeAsync<object>(identifier: "swal", "Editar", "Ubicación del producto editada correctamente");
-        else
-            await JsRuntime.InvokeAsync<object>(identifier: "swal", "Guardar", "Ubicación del producto guardada correctamente");
-
-        NavigationManager.NavigateTo("/ubicacionProductos");
+        await JsRuntime.InvokeAsync<object>("blazorInterop.CancelSwal");
+        NavigationManager.NavigateTo("ubicacionProductos");
     }
 
-
-    public async Task cancel()
-    {
-        //await JsRuntime.InvokeAsync<string>(identifier: "cancelSwal");
-        var isTrue = await _modalService.ConfirmAsync(new ConfirmOptions()
-        {
-            Title = "Cancelar",
-            Icon =@<Icon Type="exclamation-circle" Theme="Outline"></Icon>,
-            Content = "Seguro que deseas cancelar",
-            OkText = "Si",
-            CancelText = "Cancelar"
-        });
-
-        if (isTrue)
-        NavigationManager.NavigateTo("/ubicacionProductos");
-
-    }
 }
