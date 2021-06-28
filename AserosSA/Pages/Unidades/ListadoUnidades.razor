@@ -1,6 +1,12 @@
 ﻿@page "/listadoUnidades"
-@inject IJSRuntime JsRuntime
+
 @using System.ComponentModel
+@using Models
+@using AntDesign.TableModels
+@inject HttpClient Http
+@inject IJSRuntime JsRuntime
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@using System.Text.Json;
 
 
 <div class="col-sm-12" style="text-align:left;margin-top:10px;">
@@ -13,7 +19,7 @@
         </Col>
         <Col Span="3">
         <div style="text-align:right; width:87%;">
-            <a href="/unidad" title="Nuevo"><i style="margin-right:5px;">Agregar</i><span class="oi oi-plus"></span></a>
+            <a title="Nueva unidad" @onclick="AltaUnidad"><i style="margin-right:5px;">Agregar</i><span class="oi oi-plus"></span></a>
         </div>
         </Col>
     </Row>
@@ -21,29 +27,30 @@
 
 
 <Table @ref="table"
-       TItem="Unidades"
+       TItem="UnidadModel"
        DataSource="@unidades"
        Total="_total"
        @bind-PageIndex="_pageIndex"
        @bind-PageSize="_pageSize"
-       @bind-SelectedRows="selectedRows">
+       @bind-SelectedRows="selectedRows"
+       OnChange="OnChange">
 
     <Selection Key="@(context.Id.ToString())" />
 
-    <AntDesign.Column @bind-Field="@context.Id" Sortable />
-    <AntDesign.Column @bind-Field="@context.Nombre" Sortable />
-    <AntDesign.Column @bind-Field="@context.Simbolo" Sortable />
+    <Column Title="Clave" @bind-Field="@context.Id" Sortable />
+    <Column @bind-Field="@context.Nombre" Sortable />
+    <Column @bind-Field="@context.Simbolo" Sortable />
 
     <ActionColumn>
         <Space>
-            <a href="/unidad/1" title="Editar">
+            <a @onclick="()=>Edit(context.Id)" title="Editar">
                 <span class="oi oi-pencil"></span>
             </a>
         </Space>
     </ActionColumn>
     <ActionColumn>
         <Space>
-            <a title="Eliminar" @onclick="Eliminar">
+            <a title="Eliminar" @onclick="()=>Delete(context)">
                 <span class="oi oi-trash"></span>
             </a>
         </Space>
@@ -52,26 +59,52 @@
 
 <br />
 <p>Página: @_pageIndex | Registros: @_pageSize | Total: @_total</p>
-
-
-
-
-
++
 @code {
 
-    Unidades[] unidades;
+    [Inject]
+    public NavigationManager NavManager { get; set; }
+    List<UnidadModel> unidades = null;
+    List<UnidadModel> busquedaUnidad = null;
 
-    IEnumerable<Unidades> selectedRows;
+    IEnumerable<UnidadModel> selectedRows;
     ITable table;
 
     int _pageIndex = 1;
     int _pageSize = 5;
     int _total = 0;
+    private string txtValue { get; set; }
+    List<Person> _list;
+    string _selectedValue1;
 
     protected override async Task OnInitializedAsync()
     {
-        unidades = await GetForecastAsync(_pageIndex, _pageSize);
-        _total = unidades.Length;
+        unidades = await localStorage.GetItemAsync<List<UnidadModel>>("Unidades");
+
+        if (unidades == null)
+        {
+            unidades = new List<UnidadModel> {
+                new UnidadModel{ Id = 1, Nombre = "Kilogramo", Simbolo = "KG"},
+                new UnidadModel{ Id = 2, Nombre = "Litro", Simbolo = "L"},
+                new UnidadModel{ Id = 3, Nombre = "Metro", Simbolo = "M"}
+            };
+        }
+
+        //unidades = await GetForecastAsync(_pageIndex, _pageSize);
+        _total = unidades.Count;
+
+        _list = new List<Person> {
+            new Person {Value = "Nombre", Name = "Nombre"},
+            new Person {Value = "Descripcion", Name = "Descripción"}
+        };
+    }
+
+
+    class Person
+    {
+        public string Value { get; set; }
+        public string Name { get; set; }
+        public bool IsDisabled { get; set; }
     }
 
     public class Unidades
@@ -87,8 +120,74 @@
 
     }
 
-    private static readonly string[] Nombres = new[]
+    private void OnSelectedItemChangedHandler(Person value)
     {
+        Console.WriteLine($"selected: ${value?.Name}");
+    }
+
+    public async Task OnChange(QueryModel<UnidadModel> queryModel)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(queryModel));
+    }
+
+    public void RemoveSelection(int id)
+    {
+        var selected = selectedRows.Where(x => x.Id != id);
+        selectedRows = selected;
+    }
+
+    private async Task Delete(UnidadModel item)
+    {
+        bool borrarUnidad;
+        borrarUnidad = await JsRuntime.InvokeAsync<bool>("blazorInterop.deleteSwal", item.Nombre);
+        if (borrarUnidad)
+        {
+            unidades.Remove(item);
+            _total = unidades.Count;
+        }
+    }
+
+    private async Task Edit(int id)
+    {
+        await localStorage.SetItemAsync<List<UnidadModel>>("Unidades", unidades);
+        NavManager.NavigateTo($"unidad/{id}");
+    }
+
+    public async Task AltaUnidad()
+    {
+        await localStorage.SetItemAsync<List<UnidadModel>>("Unidades", unidades);
+        NavManager.NavigateTo("unidad");
+    }
+
+    private async Task buscar()
+    {
+        unidades = await localStorage.GetItemAsync<List<UnidadModel>>("Unidades");
+
+        if (txtValue != null)
+        {
+            if (_selectedValue1.Equals("Nombre"))
+            {
+                unidades = unidades.FindAll(x => x.Nombre.Contains(txtValue));
+            }
+            else if (_selectedValue1.Equals("Simbolo"))
+            {
+                unidades = unidades.FindAll(x => x.Simbolo.Contains(txtValue));
+            }
+            else
+            {
+                await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Selecciona un filtro");
+            }
+        }
+        await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Bucando...{txtValue}");
+        //await JsRuntime.InvokeAsync<Object>(identifier: "buscarSwal");
+    }
+
+
+
+
+
+    /*private static readonly string[] Nombres = new[]
+{
         "Kilogramo", "Litro", "Metro", "Tonelada", "Libra", "Yarda", "Pie", "Pulgada", "Vara", "Milla", "Onza"
     };
     private static readonly string[] Simbolos = new[]
@@ -122,6 +221,6 @@
     {
         await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Bucando...{txtValue}");
         //await JsRuntime.InvokeAsync<Object>(identifier: "buscarSwal");
-    }
+    }*/
 }
 
