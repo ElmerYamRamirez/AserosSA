@@ -43,10 +43,11 @@
        @bind-PageSize="_pageSize"
        @bind-SelectedRows="selectedRows"
        OnChange="OnChange">
-    <Selection Key="@(context.Id.ToString())" />
+    <Selection Key="@(context.Id)" />
     <Column Title="Clave" @bind-Field="@context.Id" Sortable />
     <Column @bind-Field="@context.Nombre" Sortable />
     <Column @bind-Field="@context.Descripcion" Sortable />
+    <Column @bind-Field="@context.Status" Sortable />
     <ActionColumn>
         <Space>
             <a title="Editar" @onclick="()=>Edit(context.Id)">
@@ -100,17 +101,19 @@
 
         if (almacenes == null) {
             almacenes = new List<AlmacenModel> {
-                new AlmacenModel{ Id = 1, Nombre = "MP", Descripcion = "Materia Prima"},
-                new AlmacenModel{ Id = 2, Nombre = "REFAC", Descripcion = "Refacciones"},
-                new AlmacenModel{ Id = 3, Nombre = "PV", Descripcion = "Productos Varios"}
+                new AlmacenModel{ Id = "ALM-MPRI-01", Nombre = "MP", Descripcion = "Almacen para el guardado de Materia Prima", Status = "activo"},
+                new AlmacenModel{ Id = "ALM-REFA-01", Nombre = "REFAC", Descripcion = "Almacen para el guardado de Refacciones", Status = "activo"},
+                new AlmacenModel{ Id = "PV-PRVA-01", Nombre = "PV", Descripcion = "Almacen para el guardado de Productos Varios", Status = "activo"}
             };
         }
 
         _total = almacenes.Count;
 
         _list = new List<Person> {
+            new Person {Value = "Clave", Name = "Clave"},
             new Person {Value = "Nombre", Name = "Nombre"},
-            new Person {Value = "Descripcion", Name = "Descripción"}
+            new Person {Value = "Descripcion", Name = "Descripción"},
+            new Person {Value = "Status", Name = "Status"}
         };
     }
 
@@ -132,7 +135,7 @@
         Console.WriteLine(JsonSerializer.Serialize(queryModel));
     }
 
-    public void RemoveSelection(int id)
+    public void RemoveSelection(string id)
     {
         var selected = selectedRows.Where(x => x.Id != id);
         selectedRows = selected;
@@ -145,11 +148,12 @@
         if (borrarAlmacen)
         {
             almacenes.Remove(item);
+            await localStorage.SetItemAsync<List<AlmacenModel>>("Almacenes", almacenes);
             _total = almacenes.Count;
         }
     }
 
-    private async Task Edit(int id)
+    private async Task Edit(string id)
     {
         await localStorage.SetItemAsync<List<AlmacenModel>>("Almacenes", almacenes);
         NavManager.NavigateTo($"editarAlmacen/{id}");
@@ -167,17 +171,23 @@
 
         if (txtValue != null)
         {
-            if (_selectedValue1.Equals("Nombre"))
+            switch (_selectedValue1)
             {
-                almacenes = almacenes.FindAll(x => x.Nombre.Contains(txtValue));
-            }
-            else if (_selectedValue1.Equals("Descripcion"))
-            {
-                almacenes = almacenes.FindAll(x => x.Descripcion.Contains(txtValue));
-            }
-            else
-            {
-                await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Selecciona un filtro");
+                case "Nombre":
+                    almacenes = almacenes.FindAll(x => x.Nombre.Contains(txtValue, StringComparison.CurrentCultureIgnoreCase));
+                    break;
+                case "Descripcion":
+                    almacenes = almacenes.FindAll(x => x.Descripcion.Contains(txtValue, StringComparison.CurrentCultureIgnoreCase));
+                    break;
+                case "Clave":
+                    almacenes = almacenes.FindAll(x => x.Id.Contains(txtValue, StringComparison.CurrentCultureIgnoreCase));
+                    break;
+                case "Status":
+                    almacenes = almacenes.FindAll(x => x.Status.Contains(txtValue,StringComparison.CurrentCultureIgnoreCase));
+                    break;
+                default:
+                    await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Selecciona un filtro");
+                    break;
             }
         }
         await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Bucando...{txtValue}");

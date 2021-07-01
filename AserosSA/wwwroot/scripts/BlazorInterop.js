@@ -58,3 +58,11 @@ blazorInterop.saveSwal = function () {
         icon: "success",
     });
 }
+
+blazorInterop.errorFormSwal = function (txt) {
+    swal({
+        title: "Verifica el formulario",
+        text: txt,
+        icon: "warning",
+    });
+}
