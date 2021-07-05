@@ -45,11 +45,12 @@
        @bind-SelectedRows="selectedRows"
        OnChange="OnChange">
 
-    <Selection Key="@(context.Id.ToString())" />
+    <Selection Key="@(context.Id)" />
 
     <Column Title="Clave" @bind-Field="@context.Id" Sortable />
-    <Column @bind-Field="@context.Nombre" Sortable />
     <Column @bind-Field="@context.Simbolo" Sortable />
+    <Column @bind-Field="@context.Descripcion" Sortable />
+    <Column @bind-Field="@context.Estatus" Sortable />
 
     <ActionColumn>
         <Space>
@@ -69,11 +70,12 @@
 
 <br />
 <p>Página: @_pageIndex | Registros: @_pageSize | Total: @_total</p>
-+
+
 @code {
 
     [Inject]
     public NavigationManager NavManager { get; set; }
+
     List<UnidadModel> unidades = null;
     List<UnidadModel> busquedaUnidad = null;
 
@@ -94,9 +96,9 @@
         if (unidades == null)
         {
             unidades = new List<UnidadModel> {
-                new UnidadModel{ Id = 1, Nombre = "Kilogramo", Simbolo = "KG"},
-                new UnidadModel{ Id = 2, Nombre = "Litro", Simbolo = "L"},
-                new UnidadModel{ Id = 3, Nombre = "Metro", Simbolo = "M"}
+                new UnidadModel{ Id = "UNI-KG-01", Simbolo = "KG", Descripcion = "Kilogramo", Estatus = "Activo"},
+                new UnidadModel{ Id = "UNI-L-01", Simbolo = "L", Descripcion = "Litro", Estatus = "Activo"},
+                new UnidadModel{ Id = "UNI-M-01", Simbolo = "M", Descripcion = "Metro", Estatus = "Activo"}
             };
         }
 
@@ -104,8 +106,10 @@
         _total = unidades.Count;
 
         _list = new List<Person> {
-            new Person {Value = "Nombre", Name = "Nombre"},
-            new Person {Value = "Descripcion", Name = "Descripción"}
+            new Person {Value = "Clave", Name = "Clave"},
+            new Person {Value = "Simbolo", Name = "Simbolo"},
+            new Person {Value = "Descripcion", Name = "Descripción"},
+            new Person {Value = "Estatus", Name = "Estatus"},
         };
     }
 
@@ -115,19 +119,6 @@
         public string Value { get; set; }
         public string Name { get; set; }
         public bool IsDisabled { get; set; }
-    }
-
-    public class Unidades
-    {
-        [DisplayName("Clave")]
-        public int Id { get; set; }
-
-        [DisplayName("Nombre")]
-        public string? Nombre { get; set; }
-
-        [DisplayName("Simbolo")]
-        public string Simbolo { get; set; }
-
     }
 
     private void OnSelectedItemChangedHandler(Person value)
@@ -140,7 +131,7 @@
         Console.WriteLine(JsonSerializer.Serialize(queryModel));
     }
 
-    public void RemoveSelection(int id)
+    public void RemoveSelection(string id)
     {
         var selected = selectedRows.Where(x => x.Id != id);
         selectedRows = selected;
@@ -149,7 +140,7 @@
     private async Task Delete(UnidadModel item)
     {
         bool borrarUnidad;
-        borrarUnidad = await JsRuntime.InvokeAsync<bool>("blazorInterop.deleteSwal", item.Nombre);
+        borrarUnidad = await JsRuntime.InvokeAsync<bool>("blazorInterop.deleteSwal", item.Simbolo);
         if (borrarUnidad)
         {
             unidades.Remove(item);
@@ -157,7 +148,7 @@
         }
     }
 
-    private async Task Edit(int id)
+    private async Task Edit(string id)
     {
         await localStorage.SetItemAsync<List<UnidadModel>>("Unidades", unidades);
         NavManager.NavigateTo($"unidad/{id}");
@@ -175,17 +166,23 @@
 
         if (txtValue != null)
         {
-            if (_selectedValue1.Equals("Nombre"))
+            switch (_selectedValue1)
             {
-                unidades = unidades.FindAll(x => x.Nombre.Contains(txtValue));
-            }
-            else if (_selectedValue1.Equals("Simbolo"))
-            {
-                unidades = unidades.FindAll(x => x.Simbolo.Contains(txtValue));
-            }
-            else
-            {
-                await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Selecciona un filtro");
+                case "Clave":
+                    unidades = unidades.FindAll(x => x.Id.Contains(txtValue, StringComparison.CurrentCultureIgnoreCase));
+                    break;
+                case "Simbolo":
+                    unidades = unidades.FindAll(x => x.Simbolo.Contains(txtValue, StringComparison.CurrentCultureIgnoreCase));
+                    break;
+                case "Descripcion":
+                    unidades = unidades.FindAll(x => x.Descripcion.Contains(txtValue, StringComparison.CurrentCultureIgnoreCase));
+                    break;
+                case "Estatus":
+                    unidades = unidades.FindAll(x => x.Estatus.Contains(txtValue, StringComparison.CurrentCultureIgnoreCase));
+                    break;
+                default:
+                    await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Selecciona un filtro");
+                    break;
             }
         }
         await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Bucando...{txtValue}");

@@ -1,15 +1,13 @@
 ﻿@page "/unidad"
-@page "/unidad/{id:int}"
+@page "/unidad/{id}"
 @using System.Text.Json;
 @using Models;
 @inject IJSRuntime JsRuntime
 @inject NavigationManager NavigationManager
-@inject ModalService _modalService
-@inject MessageService _message
 
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 
-@if (id != 0)
+@if (id == null)
 {
     <h3>Editar Unidad</h3>
 }
@@ -18,18 +16,33 @@ else
     <h3>Alta Unidad</h3>
 }
 
-<Form Model="@Unidad"
+<Form @ref="form"
+      ValidateOnChange="true"
+      Model="@Unidad"
       LabelColSpan="24"
       WrapperColSpan="8"
       OnFinish="OnFinish"
       OnFinishFailed="OnFinishFailed"
       Size="ntSizeLDSType.Small">
 
-    <FormItem Label="Nombre">
-        <Input @bind-Value="@context.Nombre" />
+    <FormItem Label="Clave">
+        <Input @bind-Value="@context.Id" />
     </FormItem>
     <FormItem Label="Simbolo">
         <TextArea @bind-Value="@context.Simbolo" />
+    </FormItem>
+    <FormItem Label="Descripción">
+        <TextArea @bind-Value="@context.Descripcion" />
+    </FormItem>
+    <FormItem Label="Estatus">
+        <Select DataSource="@_list"
+                @bind-Value="@context.Estatus"
+                ValueName="@nameof(Person.Value)"
+                LabelName="@nameof(Person.Name)"
+                Style="width: 120px;"
+                Placeholder="Choose"
+                AllowClear>
+        </Select>
     </FormItem>
     <FormItem WrapperColSpan="16">
         <Button @onclick="save" HtmlType="submit">
@@ -40,65 +53,50 @@ else
         </Button>
     </FormItem>
 </Form>
-<!--<div class="rounded w-75 bg-light mx-auto" style="margin:15px;">
-    <h3 class="text-center">Unidad</h3>
-    <div class="row">
-        <div class="col-md-1"></div>
-        <div class="col-md-10">
-            <table class="table">
-                <tbody>
-                    <tr>
-                        <td colspan="3">
-                            <label>Nombre de Unidad: </label>
-                            <input type="text" class="form-control" aria-label="">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <label>Simbolo de Unidad: </label>
-                            <input type="text" class="form-control" aria-label="">
-                        </td>
 
+@code 
+{
+        [Parameter]
+        public string id { get; set; }
+        bool editar = false;
 
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+    private UnidadModel Unidad = new UnidadModel();
+    AntDesign.Form<UnidadModel> form;
 
-        <div class="col-sm-11" style="text-align:right;">
-            <Button Type="primary" @onclick="savedMessage">@saveValue</Button>
-            <Button Type="default" @onclick="cancel" Danger>Cancelar</Button>
-        </div>
-    </div>
-</div>-->
+    List<UnidadModel> unidades = null;
 
-@code {
-    [Parameter]
-    public int id { get; set; }
+    List<Person> _list;
+
+    class Person
+    {
+        public string Value { get; set; }
+        public string Name { get; set; }
+    }
 
     public String saveValue { get; set; }
 
-    private UnidadModel Unidad = new UnidadModel();
-    List<UnidadModel> unidades = null;
+
 
     protected override async Task OnInitializedAsync()
     {
-        if (id != 0)
+        _list = new List<Person>
+        {
+            new Person {Value = "activo", Name = "Activo"},
+            new Person {Value = "inactivo", Name = "Inactivo"}
+        };
+
+        unidades = await localStorage.GetItemAsync<List<UnidadModel>>("Unidades");
+
+        if (!(id == null))
         {
             saveValue = "Editar";
+            Unidad = unidades.Find(x => x.Id.Equals(id));
+            editar = true;
         }
         else
         {
             saveValue = "Guardar";
         }
-
-        unidades = await localStorage.GetItemAsync<List<UnidadModel>>("Unidades");
-
-        if (id != 0)
-        {
-            Unidad = unidades.Find(x => x.Id == id);
-        }
-
     }
 
     private void OnFinish(EditContext editContext)
@@ -113,42 +111,42 @@ else
 
     private async Task save()
     {
-        if (Unidad.Id == 0)
+        if (form.Validate())
         {
-            Unidad.Id = unidades[unidades.Count - 1].Id + 1;
-            //Unidad.Id = unidades.Count + 1;
-            unidades.Add(Unidad);
+            if (editar == false)
+            {
+                if (unidades.Exists(x => x.Id == Unidad.Id))
+                {
+                    await JsRuntime.InvokeAsync<object>("blazorInterop.errorFormSwal", $"El id {Unidad.Id} ya existe");
+                }
+                else
+                {
+                    unidades.Add(Unidad);
+                    await localStorage.SetItemAsync<List<UnidadModel>>("Unidades", unidades);
+                    await JsRuntime.InvokeAsync<object>("blazorInterop.saveSwal");
+                    NavigationManager.NavigateTo("/listadoUnidades");
+                }
+            }
+            else
+            {
+                await localStorage.SetItemAsync<List<UnidadModel>>("Unidades", unidades);
+                await JsRuntime.InvokeAsync<object>("blazorInterop.saveSwal");
+                NavigationManager.NavigateTo("/listadoUnidades");
+            }
         }
-        await localStorage.SetItemAsync<List<UnidadModel>>("Unidades", unidades);
-        await JsRuntime.InvokeAsync<object>("blazorInterop.saveSwal");
-        NavigationManager.NavigateTo("listadoUnidades");
-    }
-    /*public async Task savedMessage()
-    {
-        if (id != 0)
-            await JsRuntime.InvokeAsync<object>(identifier: "swal", "Editar", "Unidad Editada correctamente");
         else
-            await JsRuntime.InvokeAsync<object>(identifier: "swal", "Guardar", "Unidad Guardada correctamente");
+        {
+            await JsRuntime.InvokeAsync<object>("blazorInterop.errorFormSwal");
+        }
+    }
 
-        NavigationManager.NavigateTo("/listadoUnidades");
-    }*/
 
 
     public async Task cancel()
     {
-        //await JsRuntime.InvokeAsync<string>(identifier: "cancelSwal");
-        var isTrue = await _modalService.ConfirmAsync(new ConfirmOptions()
-        {
-            Title = "Cancelar",
-            Icon =@<Icon Type="exclamation-circle" Theme="Outline"></Icon>,
-            Content = "Seguro que deseas cancelar",
-            OkText = "Si",
-            CancelText = "Cancelar"
-            });
-
-            if (isTrue)
-            NavigationManager.NavigateTo("/listadoUnidades");
-
-         }
+        await JsRuntime.InvokeAsync<object>("blazorInterop.CancelSwal");
+        NavigationManager.NavigateTo("/listadoUnidades");
     }
+
+}
 
