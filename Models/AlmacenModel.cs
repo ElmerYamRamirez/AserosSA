@@ -9,7 +9,7 @@ namespace Models
 {
     public class AlmacenModel : IValidatableObject
     {
-        [RegularExpression(@"^ALM-[A-Z]{4}-[0-9]{2}",
+        [RegularExpression(@"^ALM-[A-Z]{2}-[0-9]{2}",
          ErrorMessage = "Caracteres no permitidos.ALM-XXXX-00")]
         [Required(ErrorMessage = "La clave es requerida")]
         public string Id { get; set; }
