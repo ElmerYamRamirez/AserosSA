@@ -1,5 +1,5 @@
 ﻿@page "/altaubicacion"
-@page "/editarUbicacion/{id:int}"
+@page "/editarUbicacion/{id}"
 @using System.Text.Json;
 @using Models;
 @inject NavigationManager NavigationManager
@@ -8,30 +8,56 @@
 @inject ModalService _modalService
 @inject MessageService _message
 
-@if (id != 0)
-{
-    <h3>Editar Ubicación</h3>
-}
-else
+@if (id == null)
 {
     <h3>Alta Ubicación</h3>
 }
+else
+{
+    <h3>Editar Ubicación</h3>
+}
 
-<Form Model="@Ubicacion"
+<Form @ref="form"
+      ValidateOnChange="true"
+      Model="@Ubicacion"
       LabelColSpan="24"
       WrapperColSpan="8"
       OnFinish="OnFinish"
       OnFinishFailed="OnFinishFailed"
       Size="ntSizeLDSType.Small">
-
-    <FormItem Label="Zona">
-        <Input @bind-Value="@context.Zona" />
+    <FormItem Label="Clave">
+        <Input id="clave" @bind-Value="@context.Id" />
+    </FormItem>
+    <FormItem Label="Nombre">
+        <Input id="nombre" @bind-Value="@context.Nombre" />
+    </FormItem>
+    <FormItem Label="Descripción">
+        <TextArea @bind-Value="@context.Descripcion" />
+    </FormItem>
+    <FormItem Label="Status">
+        <Select DataSource="@_list"
+                @bind-Value="@context.Status"
+                ValueName="@nameof(Person.Value)"
+                LabelName="@nameof(Person.Name)"
+                Style="width: 120px;"
+                Placeholder="Choose"
+                AllowClear>
+        </Select>
+    </FormItem>
+    <FormItem Label="Dimension">
+        <Input id="Dimension" @bind-Value="@context.Dimension" />
+    </FormItem>
+    <FormItem Label="Pasillo">
+        <Input id="Pasillo" @bind-Value="@context.Pasillo" />
     </FormItem>
     <FormItem Label="Estante">
-        <TextArea @bind-Value="@context.Estante" />
+        <Input id="Estante" @bind-Value="@context.Estante" />
+    </FormItem>
+    <FormItem Label="Nivel">
+        <Input id="Nivel" @bind-Value="@context.Nivel" />
     </FormItem>
     <FormItem WrapperColSpan="16">
-        <Button @onclick="save" HtmlType="submit">
+        <Button OnClick="save">
             Guardar
         </Button>
         <Button @onclick="cancel" HtmlType="submit" Danger>
@@ -40,62 +66,39 @@ else
     </FormItem>
 </Form>
 
-<!--<div class="rounded w-75 bg-light mx-auto" style="margin:15px;">
-    <h3 class="text-center">Ubicaciones</h3>
-    <div class="row">
-        <div class="col-md-1"></div>
-        <div class="col-md-10">
-            <table class="table">
-                <tbody>
-                    <tr>
-                        <td>
-                            <label>Zona: </label>
-                            <input type="text" class="form-control" aria-label="">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <label>Pasillo: </label>
-                            <input type="text" class="form-control" aria-label="">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <label>Nivel: </label>
-                            <input type="text" class="form-control" aria-label="">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <label>Subnivel: </label>
-                            <input type="text" class="form-control" aria-label="">
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="col-sm-11" style="text-align:right;">
-            <Button Type="primary" @onclick="savedMessage">@saveValue</Button>
-            <Button Type="default" @onclick="cancel" Danger>Cancelar</Button>
-        </div>
-    </div>
-</div>-->
-
-@code {
+@code
+{
     [Parameter]
-    public int id { get; set; }
+    public string id { get; set; }
+    bool editar = false;
 
     private UbicacionModel Ubicacion = new UbicacionModel();
+    AntDesign.Form<UbicacionModel> form;
+
     List<UbicacionModel> ubicaciones = null;
+
+    List<Person> _list;
+
+    class Person
+    {
+        public string Value { get; set; }
+        public string Name { get; set; }
+    }
 
     protected override async Task OnInitializedAsync()
     {
+        _list = new List<Person>
+    {
+            new Person {Value = "Activo", Name = "Activo"},
+            new Person {Value = "Inactivo", Name = "Inactivo"}
+        };
+
         ubicaciones = await localStorage.GetItemAsync<List<UbicacionModel>>("Ubicaciones");
 
-        if (id != 0)
+        if (!(id == null))
         {
-            Ubicacion = ubicaciones.Find(x => x.Id == id);
+            Ubicacion = ubicaciones.Find(x => x.Id.Equals(id));
+            editar = true;
         }
     }
 
@@ -111,14 +114,33 @@ else
 
     private async Task save()
     {
-        if (Ubicacion.Id == 0)
+        if (form.Validate())
         {
-            Ubicacion.Id = ubicaciones[ubicaciones.Count - 1].Id + 1;
-            ubicaciones.Add(Ubicacion);
+            if (editar == false)
+            {
+                if (ubicaciones.Exists(x => x.Id == Ubicacion.Id))
+                {
+                    await JsRuntime.InvokeAsync<object>("blazorInterop.errorFormSwal", $"El id {Ubicacion.Id} ya existe");
+                }
+                else
+                {
+                    ubicaciones.Add(Ubicacion);
+                    await localStorage.SetItemAsync<List<UbicacionModel>>("Ubicaciones", ubicaciones);
+                    await JsRuntime.InvokeAsync<object>("blazorInterop.saveSwal");
+                    NavigationManager.NavigateTo("ubicacionProductos");
+                }
+            }
+            else
+            {
+                await localStorage.SetItemAsync<List<UbicacionModel>>("Ubicaciones", ubicaciones);
+                await JsRuntime.InvokeAsync<object>("blazorInterop.saveSwal");
+                NavigationManager.NavigateTo("ubicacionProductos");
+            }
         }
-        await localStorage.SetItemAsync<List<UbicacionModel>>("Ubicaciones", ubicaciones);
-        await JsRuntime.InvokeAsync<object>("blazorInterop.saveSwal");
-        NavigationManager.NavigateTo("ubicacionProductos");
+        else
+        {
+            await JsRuntime.InvokeAsync<object>("blazorInterop.errorFormSwal");
+        }
     }
 
     private async Task cancel()

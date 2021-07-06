@@ -19,15 +19,15 @@
         <Col Span="3">
         <Select DataSource="@_list"
                 @bind-Value="@_selectedValue1"
-                ValueName="@nameof(Info.Value)"
-                LabelName="@nameof(Info.Name)"
-                DisabledName="@nameof(Info.IsDisabled)"
+                ValueName="@nameof(Person.Value)"
+                LabelName="@nameof(Person.Name)"
+                DisabledName="@nameof(Person.IsDisabled)"
                 Style="width:120px"
                 OnSelectedItemChanged="OnSelectedItemChangedHandler">
         </Select>
         </Col>
         <Col Span="9">
-        <Search EnterButton="true" OnSearch="buscar" @bind-Value="@txtValue" Placeholder="Buscar" />
+        <Search EnterButton="true" OnSearch="buscar" @bind-Value="@txtValue" Placeholder="Buscar ubicación" />
         </Col>
         <Col Span="3">
         <div style="text-align:right; width:87%;">
@@ -37,6 +37,7 @@
     </Row>
 </div>
 
+
 <Table @ref="table"
        TItem="UbicacionModel"
        DataSource="@ubicaciones"
@@ -45,29 +46,34 @@
        @bind-PageSize="_pageSize"
        @bind-SelectedRows="selectedRows"
        OnChange="OnChange">
-    <Selection Key="@(context.Id.ToString())" />
+    <Selection Key="@(context.Id)" />
     <Column Title="Clave" @bind-Field="@context.Id" Sortable />
-    <Column @bind-Field="@context.Zona" Sortable />
+    <Column @bind-Field="@context.Nombre" Sortable />
+    <Column @bind-Field="@context.Descripcion" Sortable />
+    <Column @bind-Field="@context.Status" Sortable />
+    <Column @bind-Field="@context.Dimension" Sortable />
+    <Column @bind-Field="@context.Pasillo" Sortable />
     <Column @bind-Field="@context.Estante" Sortable />
+    <Column @bind-Field="@context.Nivel" Sortable />
     <ActionColumn>
         <Space>
-            <a title="Editar" @onclick="() => Edit(context.Id)">
+            <a title="Editar" @onclick="()=>Edit(context.Id)">
                 <span class="oi oi-pencil"></span>
             </a>
         </Space>
     </ActionColumn>
     <ActionColumn>
         <Space>
-            <a title="Eliminar" @onclick="() => Delete(context)">
+            <a title="Eliminar" @onclick="()=>Delete(context)">
                 <span class="oi oi-trash"></span>
             </a>
         </Space>
     </ActionColumn>
-
 </Table>
 
 <br />
-<p>Página: @_pageIndex | Registros: @_pageSize | Total: @_total</p>
+<p>PageIndex: @_pageIndex | PageSize: @_pageSize | Total: @_total</p>
+
 
 @using System.Text.Json;
 @code {
@@ -85,49 +91,53 @@
     int _pageSize = 4;
     int _total = 0;
     private string txtValue { get; set; }
-    List<Info> _list;
+    List<Person> _list;
     string _selectedValue1;
+
 
     protected override async Task OnInitializedAsync()
     {
+
         ubicaciones = await localStorage.GetItemAsync<List<UbicacionModel>>("Ubicaciones");
 
         if (ubicaciones == null)
         {
-            ubicaciones = new List<UbicacionModel>
-            {
-                new UbicacionModel{ Id = 1, Zona = "Zon1", Estante = "Est1" },
-                new UbicacionModel{ Id = 2, Zona = "Zon2", Estante = "Est2" },
-                new UbicacionModel{ Id = 3, Zona = "Zon3", Estante = "Est3" }
+            ubicaciones = new List<UbicacionModel> {
+                new UbicacionModel{ Id = "UBI-PV-01", Nombre = "Productos varios", Descripcion = "Estante para el guardado de productos varios", Status = "Activo", Dimension = "3", Pasillo = "1", Estante = "1", Nivel= "4"},
+                //new UbicacionModel{ Id = "ALM-RF-01", Nombre = "REFAC", Descripcion = "Almacen para el guardado de Refacciones", Status = "activo", Dimension = "D2"},
+                //new UbicacionModel{ Id = "ALM-PV-01", Nombre = "PV", Descripcion = "Almacen para el guardado de Productos Varios", Status = "activo", Dimension = "D3"}
             };
         }
 
         _total = ubicaciones.Count;
 
-        _list = new List<Info> {
-              new Info {Value = "Zona", Name = "Zona"},
-            new Info {Value = "Estante", Name = "Estante"}
+        _list = new List<Person> {
+            new Person {Value = "Clave", Name = "Clave"},
+            new Person {Value = "Nombre", Name = "Nombre"},
+            new Person {Value = "Descripcion", Name = "Descripción"},
+            new Person {Value = "Status", Name = "Status"},
         };
     }
 
-    class Info
+    class Person
     {
         public string Value { get; set; }
         public string Name { get; set; }
         public bool IsDisabled { get; set; }
     }
 
-    private void OnSelectedItemChangedHandler(Info value)
+    private void OnSelectedItemChangedHandler(Person value)
     {
         Console.WriteLine($"selected: ${value?.Name}");
     }
+
 
     public async Task OnChange(QueryModel<UbicacionModel> queryModel)
     {
         Console.WriteLine(JsonSerializer.Serialize(queryModel));
     }
 
-    public void RemoveSelection(int id)
+    public void RemoveSelection(string id)
     {
         var selected = selectedRows.Where(x => x.Id != id);
         selectedRows = selected;
@@ -136,15 +146,16 @@
     private async Task Delete(UbicacionModel item)
     {
         bool borrarUbicacion;
-        borrarUbicacion = await JsRuntime.InvokeAsync<bool>("blazorInterop.deleteSwal", item.Zona);
+        borrarUbicacion = await JsRuntime.InvokeAsync<bool>("blazorInterop.deleteSwal", item.Nombre);
         if (borrarUbicacion)
         {
             ubicaciones.Remove(item);
+            await localStorage.SetItemAsync<List<UbicacionModel>>("Ubicaciones", ubicaciones);
             _total = ubicaciones.Count;
         }
     }
 
-    private async Task Edit(int id)
+    private async Task Edit(string id)
     {
         await localStorage.SetItemAsync<List<UbicacionModel>>("Ubicaciones", ubicaciones);
         NavManager.NavigateTo($"editarUbicacion/{id}");
@@ -158,25 +169,30 @@
 
     private async Task buscar()
     {
-        ubicaciones = await localStorage.GetItemAsync<List<UbicacionModel>>("Ubicaciones");
+        ubicaciones = await localStorage.GetItemAsync<List<UbicacionModel>>("Almacenes");
 
         if (txtValue != null)
         {
-            if (_selectedValue1.Equals("Zona"))
+            switch (_selectedValue1)
             {
-                ubicaciones = ubicaciones.FindAll(x => x.Zona.Contains(txtValue));
-            }
-            else if (_selectedValue1.Equals("Estante"))
-            {
-                ubicaciones = ubicaciones.FindAll(x => x.Estante.Contains(txtValue));
-            }
-            else
-            {
-                await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Selecciona un filtro");
+                case "Nombre":
+                    ubicaciones = ubicaciones.FindAll(x => x.Nombre.Contains(txtValue, StringComparison.CurrentCultureIgnoreCase));
+                    break;
+                case "Descripcion":
+                    ubicaciones = ubicaciones.FindAll(x => x.Descripcion.Contains(txtValue, StringComparison.CurrentCultureIgnoreCase));
+                    break;
+                case "Clave":
+                    ubicaciones = ubicaciones.FindAll(x => x.Id.Contains(txtValue, StringComparison.CurrentCultureIgnoreCase));
+                    break;
+                case "Status":
+                    ubicaciones = ubicaciones.FindAll(x => x.Status.Contains(txtValue, StringComparison.CurrentCultureIgnoreCase));
+                    break;
+                default:
+                    await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Selecciona un filtro");
+                    break;
             }
         }
         await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Bucando...{txtValue}");
-
     }
 
 }

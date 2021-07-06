@@ -7,13 +7,42 @@ using System.Threading.Tasks;
 
 namespace Models
 {
-    public class UbicacionModel
+    public class UbicacionModel : IValidatableObject
     {
-        [Required]
-        public int Id { get; set; }
+        [RegularExpression(@"^UBI-[A-Z]{2}-[0-9]{2}",
+         ErrorMessage = "Caracteres no permitidos.UBI-XX-00")]
+        [Required(ErrorMessage = "La clave es requerida")]
+        public string Id { get; set; }
 
-        public string Zona { get; set; }
+        [Required(ErrorMessage = "El nombre es requerido")]
+        [StringLength(10, ErrorMessage = "Nombre es muy largo.")]
+        public string Nombre { get; set; }
 
+        public string Descripcion { get; set; }
+
+        [Required(ErrorMessage = "El status es requerido")]
+        public string Status { get; set; }
+
+        [Required(ErrorMessage = "La dimensión es requerida")]
+        public string Dimension { get; set; }
+
+        [Required(ErrorMessage = "El pasillo es requerido")]
+        public string Pasillo { get; set; }
+
+        [Required(ErrorMessage = "El estante es requerido")]
         public string Estante { get; set; }
+
+        [Required(ErrorMessage = "El nivel es requerido")]
+        public string Nivel { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (Id == Nombre)
+            {
+                yield return new ValidationResult(
+                    $"El id {Id} ya existe.",
+                    new[] { nameof(Id) });
+            }
+        }
     }
 }
