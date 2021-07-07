@@ -6,7 +6,7 @@
 @inject IJSRuntime JsRuntime
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 
-@if (id == null)
+@if (id != null)
 {
     <h3>Editar Almacen</h3>
 }
@@ -76,7 +76,7 @@ else
         _list = new List<Person>
         {
             new Person {Value = "activo", Name = "Activo"},
-            new Person {Value = "desactivo", Name = "Desactivo"}
+            new Person {Value = "inactivo", Name = "Inactivo"}
         };
 
         almacenes = await localStorage.GetItemAsync<List<AlmacenModel>>("Almacenes");

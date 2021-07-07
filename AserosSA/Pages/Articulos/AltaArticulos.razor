@@ -4,6 +4,9 @@
 @inject NavigationManager NavigationManager
 @inject ModalService _modalService
 @inject MessageService _message
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@using Models;
+@using System.Text.Json;
 
 
 <div class="rounded w-75 bg-light mx-auto" style="margin:15px;">
@@ -93,11 +96,75 @@
         </div>
 
         <div class="col-sm-11" style="text-align:right;">
-            <Button Type="primary" @onclick="savedMessage">@saveValue</Button>
+            <Button Type="primary" @onclick="Save">@saveValue</Button>
             <Button Type="default" @onclick="cancel" Danger>Cancelar</Button>
         </div>
     </div>
 </div>
+
+<Form @ref="form"
+      ValidateOnChange="true"
+      Model="@Articulo"
+      LabelColSpan="24"
+      WrapperColSpan="8"
+      OnFinish="OnFinish"
+      OnFinishFailed="OnFinishFailed"
+      Size="ntSizeLDSType.Small">
+    <FormItem Label="Clave">
+        <Input id="clave" @bind-Value="@context.Id" />
+    </FormItem>
+    <FormItem Label="Nombre">
+        <Input id="nombre" @bind-Value="@context.Nombre" />
+    </FormItem>
+    <FormItem Label="Descripción">
+        <TextArea @bind-Value="@context.Descripcion" />
+    </FormItem>
+    <FormItem Label="Marca">
+        <Input id="marca" @bind-Value="@context.Marca" />
+    </FormItem>
+    <FormItem Label="Cantidad">
+        <AntDesign.InputNumber id="cantidad" @bind-Value="@context.Cantidad" />
+    </FormItem>
+    <FormItem Label="Precio unitario">
+        <Input id="precioUnitario" @bind-Value="@context.PrecioUnitario" />
+    </FormItem>
+    <FormItem Label="Minimo">
+        <AntDesign.InputNumber id="minimo" @bind-Value="@context.Minimo" />
+    </FormItem>
+    <FormItem Label="Maximo">
+        <AntDesign.InputNumber id="maximo" @bind-Value="@context.Maximo" />
+    </FormItem>
+    <FormItem Label="Punto de reorden">
+        <AntDesign.InputNumber id="puntoReorden" @bind-Value="@context.PuntoReorden" />
+    </FormItem>
+    <FormItem>
+        <Select Mode="multiple"
+                Placeholder="Please select"
+                @bind-Values="@_selectedValues1"
+                TItemValue="string"
+                TItem="string"
+                EnableSearch
+                AllowClear>
+            <SelectOptions>
+                @foreach (var item in _unidades)
+                {
+                    <SelectOption TItemValue="string" TItem="string" Value=@item Label=@item />
+                }
+            </SelectOptions>
+        </Select>
+    </FormItem>
+    
+
+
+    <FormItem WrapperColSpan="16">
+        <Button OnClick="Save">
+            Guardar
+        </Button>
+        <Button @onclick="cancel" HtmlType="submit" Danger>
+            Cancelar
+        </Button>
+    </FormItem>
+</Form>
 
 @code {
     [Parameter]
@@ -105,13 +172,23 @@
 
     public String saveValue { get; set; }
 
+    public string namevalue { get; set; }
+
+    //Formulario
+    AntDesign.Form<ArticuloModel> form;
+    //AntDesign.Select<UnidadModel> select;
+    private ArticuloModel Articulo = new ArticuloModel();
+    private UnidadModel Unidad = new UnidadModel();
+    List<UnidadModel> _unidades2;
+    List<string> _unidades = new List<string>(){"fda","fd" ,"df"};
+    string nombre = "elmer";
     //VARIABLES DEL SELECTOR MULTIPLE
-    List<string> _items;
     IEnumerable<string> _selectedValues1;
     private MarkupString bandera;
 
     protected override async Task OnInitializedAsync()
     {
+        //_unidades2 = await localStorage.GetItemAsync<List<UnidadModel>>("Unidades");
         if (id != 0)
         {
             saveValue = "Editar";
@@ -123,14 +200,17 @@
 
     }
 
-    public async Task savedMessage()
+    public void OnFinishFailed() { }
+    public void OnFinish() { }
+
+    public async Task Save()
     {
-        if (id != 0)
+        /*if (id != 0)
             await JsRuntime.InvokeAsync<object>(identifier: "swal", "Editar", "Articulos Editada correctamente");
         else
             await JsRuntime.InvokeAsync<object>(identifier: "swal", "Guardar", "Articulo Guardada correctamente");
 
-        NavigationManager.NavigateTo("/listaArticulos");
+        NavigationManager.NavigateTo("/listaArticulos");*/
     }
 
 
@@ -141,14 +221,14 @@
         {
             Title = "Cancelar",
             Icon =@<Icon Type="exclamation-circle" Theme="Outline"></Icon>,
-            Content = "Seguro que deseas cancelar",
-            OkText = "Si",
-            CancelText = "Cancelar"
-        });
+Content = "Seguro que deseas cancelar",
+OkText = "Si",
+CancelText = "Cancelar"
+});
 
-            if (isTrue)
-            NavigationManager.NavigateTo("/listaArticulos");
+if (isTrue)
+NavigationManager.NavigateTo("/listaArticulos");
 
-    }
+}
 }
 

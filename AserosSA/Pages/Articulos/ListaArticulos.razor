@@ -2,7 +2,10 @@
 
 @inject IJSRuntime JsRuntime
 @using System.ComponentModel
+@using Models
 @inject ModalService _modalService
+@inject NavigationManager NavigationManager
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject NavigationManager NavigationManager
 
 
@@ -26,7 +29,7 @@
         </Col>
         <Col Span="3">
         <div style="text-align:right; width:87%;">
-            <a href="/altaArticulo" title="Nuevo"><i style="margin-right:5px;">Agregar</i><span class="oi oi-plus"></span></a>
+            <a @onclick="AltaArticulo" title="Nuevo"><i style="margin-right:5px;">Agregar</i><span class="oi oi-plus"></span></a>
         </div>
         </Col>
     </Row>
@@ -34,21 +37,27 @@
 
 
 <Table @ref="table"
-       TItem="CasosDeUso"
-       DataSource="@casoDeUso"
+       TItem="ArticuloModel"
+       DataSource="@articulos"
        Total="_total"
        @bind-PageIndex="_pageIndex"
        @bind-PageSize="_pageSize"
+       Size=@TableSize.Small
        @bind-SelectedRows="selectedRows">
 
-    <Selection Key="@(context.Id.ToString())" />
-
-    <AntDesign.Column @bind-Field="@context.ClavePrincipal" Sortable />
+    <AntDesign.Column @bind-Field="@context.Id" Sortable />
+    <AntDesign.Column @bind-Field="@context.Nombre" Sortable />
     <AntDesign.Column @bind-Field="@context.Descripcion" Sortable />
     <AntDesign.Column @bind-Field="@context.Marca" Sortable />
+    <AntDesign.Column @bind-Field="@context.Cantidad" Sortable />
+    <AntDesign.Column @bind-Field="@context.PrecioUnitario" Sortable />
+    <AntDesign.Column @bind-Field="@context.Minimo" Sortable />
     <AntDesign.Column @bind-Field="@context.Maximo" Sortable />
     <AntDesign.Column @bind-Field="@context.PuntoReorden" Sortable />
-    <AntDesign.Column @bind-Field="@context.Minimo" Sortable />
+    <AntDesign.Column TData="string" DataIndex="Unidad.Id" Sortable />
+    <AntDesign.Column TData="int" DataIndex="Ubicacion.Id" Sortable />
+    <AntDesign.Column TData="string" DataIndex="Almacen.Id" Sortable />
+
     <ActionColumn>
         <Space>
             <a href="/consultaArticulo/1" title="Ver">
@@ -83,13 +92,14 @@
 
     CasosDeUso[] casoDeUso;
 
-    IEnumerable<CasosDeUso> selectedRows;
+    IEnumerable<ArticuloModel> selectedRows;
     ITable table;
 
     int _pageIndex = 1;
     int _pageSize = 5;
     int _total = 0;
 
+    List<ArticuloModel> articulos = null;
     List<CriteriodeBusqueda> _list;
     string _selectedValue1;
 
@@ -101,6 +111,15 @@
         _list = new List<CriteriodeBusqueda>{
             new CriteriodeBusqueda {Value = "Clave", Name = "Clave"},
             new CriteriodeBusqueda {Value = "Descripción", Name = "Descripción"}
+        };
+
+        articulos = new List<ArticuloModel> {
+            new ArticuloModel{Id = "ART-01", Nombre = "Hojas blancas", Descripcion="Paquete de hojas blancas t/carta", Marca = "Scribe",
+                Cantidad = 40, PrecioUnitario = 70.00, Minimo = 30, Maximo = 150, PuntoReorden = 50,
+                Unidad = new UnidadModel{Id = "", Simbolo="Caj", Descripcion = "Caja de Cartón", Estatus = "activo" },
+                Almacen = new AlmacenModel{ Id = "ALM-PRUE-00", Nombre = "Almacen" , Descripcion ="Almacen de prueba", Status ="Activo"},
+                //Ubicacion = new UbicacionModel{Id = 1, Estante = "1" , Zona = 3}
+            }
         };
     }
 
@@ -184,6 +203,11 @@
         }).ToArray());
     }
 
+    public async Task AltaArticulo()
+    {
+        await localStorage.SetItemAsync<List<ArticuloModel>>("Almacenes", articulos);
+        NavigationManager.NavigateTo("altaArticulo");
+    }
 
 
     public async Task Eliminar()
@@ -193,18 +217,18 @@
         {
             Title = "Elimar",
             Icon =@<Icon Type="exclamation-circle" Theme="Outline"></Icon>,
-            Content = "¿Estas seguro que deseas eliminar este articulo?",
-            OkText = "Si",
-            CancelText = "Cancelar"
-        });
+Content = "¿Estas seguro que deseas eliminar este articulo?",
+OkText = "Si",
+CancelText = "Cancelar"
+});
 
-        if (isTrue)
-        NavigationManager.NavigateTo("/listaArticulos");
-    }
-    private string txtValue { get; set; }
-    private async Task buscar()
-    {
-    await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Bucando...{txtValue}");
-    }
+if (isTrue)
+NavigationManager.NavigateTo("/listaArticulos");
+}
+private string txtValue { get; set; }
+private async Task buscar()
+{
+await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Bucando...{txtValue}");
+}
 }
 

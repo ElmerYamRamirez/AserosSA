@@ -9,8 +9,8 @@ namespace Models
 {
     public class UnidadModel : IValidatableObject
     {
-        [RegularExpression(@"^UNI-[A-Z]{4}-[0-9]{2}",
-         ErrorMessage = "Caracteres no permitidos.UNI-XXXX-00")]
+        [RegularExpression(@"^UNI-[A-Z]{2}-[0-9]{2}",
+         ErrorMessage = "Caracteres no permitidos.UNI-XX-00")]
         [Required(ErrorMessage = "La clave es requerida")]
         public string Id { get; set; }
 
