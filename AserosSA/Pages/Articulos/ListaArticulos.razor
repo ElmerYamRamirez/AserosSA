@@ -55,7 +55,7 @@
     <AntDesign.Column @bind-Field="@context.Maximo" Sortable />
     <AntDesign.Column @bind-Field="@context.PuntoReorden" Sortable />
     <AntDesign.Column TData="string" DataIndex="Unidad.Id" Sortable />
-    <AntDesign.Column TData="int" DataIndex="Ubicacion.Id" Sortable />
+    <AntDesign.Column TData="string" DataIndex="Ubicacion.Id" Sortable />
     <AntDesign.Column TData="string" DataIndex="Almacen.Id" Sortable />
 
     <ActionColumn>
@@ -205,7 +205,7 @@
 
     public async Task AltaArticulo()
     {
-        await localStorage.SetItemAsync<List<ArticuloModel>>("Almacenes", articulos);
+        await localStorage.SetItemAsync<List<ArticuloModel>>("Articulos", articulos);
         NavigationManager.NavigateTo("altaArticulo");
     }
 

@@ -105,8 +105,8 @@
 <Form @ref="form"
       ValidateOnChange="true"
       Model="@Articulo"
-      LabelColSpan="24"
-      WrapperColSpan="8"
+      LabelColSpan="4"
+      WrapperColSpan="14"
       OnFinish="OnFinish"
       OnFinishFailed="OnFinishFailed"
       Size="ntSizeLDSType.Small">
@@ -137,23 +137,27 @@
     <FormItem Label="Punto de reorden">
         <AntDesign.InputNumber id="puntoReorden" @bind-Value="@context.PuntoReorden" />
     </FormItem>
-    <FormItem>
-        <Select Mode="multiple"
-                Placeholder="Please select"
-                @bind-Values="@_selectedValues1"
-                TItemValue="string"
-                TItem="string"
-                EnableSearch
-                AllowClear>
-            <SelectOptions>
-                @foreach (var item in _unidades)
-                {
-                    <SelectOption TItemValue="string" TItem="string" Value=@item Label=@item />
-                }
-            </SelectOptions>
+    <FormItem Label="Unidad">
+        <Select DataSource="@_unidades"
+                @bind-Value="@context.UnidadId"
+                ValueName="@nameof(Unidad.Id)"
+                LabelName="@nameof(Unidad.Descripcion)">
         </Select>
     </FormItem>
-    
+    <FormItem Label="Almacen">
+        <Select DataSource="@_almacenes"
+                @bind-Value="@context.AlmacenId"
+                ValueName="@nameof(Almacen.Id)"
+                LabelName="@nameof(Almacen.Descripcion)">
+        </Select>
+    </FormItem>
+    <FormItem Label="Ubicación">
+        <Select DataSource="@_ubicaciones"
+                @bind-Value="@context.UbicacionId"
+                ValueName="@nameof(Ubicacion.Id)"
+                LabelName="@nameof(Ubicacion.Descripcion)">
+        </Select>
+    </FormItem>
 
 
     <FormItem WrapperColSpan="16">
@@ -179,16 +183,18 @@
     //AntDesign.Select<UnidadModel> select;
     private ArticuloModel Articulo = new ArticuloModel();
     private UnidadModel Unidad = new UnidadModel();
-    List<UnidadModel> _unidades2;
-    List<string> _unidades = new List<string>(){"fda","fd" ,"df"};
-    string nombre = "elmer";
-    //VARIABLES DEL SELECTOR MULTIPLE
-    IEnumerable<string> _selectedValues1;
-    private MarkupString bandera;
+    private AlmacenModel Almacen = new AlmacenModel();
+    private UbicacionModel Ubicacion = new UbicacionModel();
+    List<UnidadModel> _unidades;
+    List<AlmacenModel> _almacenes;
+    List<UbicacionModel> _ubicaciones;
 
     protected override async Task OnInitializedAsync()
     {
-        //_unidades2 = await localStorage.GetItemAsync<List<UnidadModel>>("Unidades");
+        _unidades = await localStorage.GetItemAsync<List<UnidadModel>>("Unidades");
+        _almacenes = await localStorage.GetItemAsync<List<AlmacenModel>>("Almacenes");
+        _ubicaciones = await localStorage.GetItemAsync<List<UbicacionModel>>("Ubicaciones");
+
         if (id != 0)
         {
             saveValue = "Editar";
@@ -211,6 +217,8 @@
             await JsRuntime.InvokeAsync<object>(identifier: "swal", "Guardar", "Articulo Guardada correctamente");
 
         NavigationManager.NavigateTo("/listaArticulos");*/
+        form.Validate();
+        Console.WriteLine(JsonSerializer.Serialize(Articulo));
     }
 
 

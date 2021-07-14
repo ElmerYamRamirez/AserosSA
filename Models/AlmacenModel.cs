@@ -15,7 +15,7 @@ namespace Models
         public string Id { get; set; }
 
         [Required(ErrorMessage = "El nombre es requerido")]
-        [StringLength(10, ErrorMessage = "Nombre es muy largo.")]
+        [StringLength(15, ErrorMessage = "Nombre es muy largo.")]
         public string Nombre { get; set; }
 
         public string Descripcion { get; set; }
