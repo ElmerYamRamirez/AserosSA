@@ -1,5 +1,5 @@
 ﻿@page "/altaArticulo"
-@page "/altaArticulo/{id}"
+@page "/editararticulo/{id}"
 @inject IJSRuntime JsRuntime
 @inject NavigationManager NavigationManager
 @inject ModalService _modalService
@@ -81,6 +81,7 @@
             <AntDesign.Col Span="24">
                 <FormItem Label="Unidad">
                     <Select DataSource="@_unidades"
+                            DefaultValue="@context.UnidadId"
                             @bind-Value="@context.UnidadId"
                             ValueName="@nameof(Unidad.Id)"
                             LabelName="@nameof(Unidad.Descripcion)">
@@ -92,6 +93,7 @@
             <AntDesign.Col Span="24">
                 <FormItem Label="Almacen">
                     <Select DataSource="@_almacenes"
+                            DefaultValue="@context.AlmacenId"
                             @bind-Value="@context.AlmacenId"
                             ValueName="@nameof(Almacen.Id)"
                             LabelName="@nameof(Almacen.Descripcion)">
@@ -103,6 +105,7 @@
             <AntDesign.Col Span="24">
                 <FormItem Label="Ubicación ">
                     <Select DataSource="@_ubicaciones"
+                            DefaultValue="@context.UbicacionId"
                             @bind-Value="@context.UbicacionId"
                             ValueName="@nameof(Ubicacion.Id)"
                             LabelName="@nameof(Ubicacion.Descripcion)">
@@ -111,7 +114,7 @@
             </AntDesign.Col>
         </Row>
         <FormItem WrapperColSpan="16">
-            <Button OnClick="Save">
+            <Button @onclick="Save">
                 Guardar
             </Button>
             <Button @onclick="cancel" HtmlType="submit" Danger>
@@ -152,12 +155,11 @@
 
             if (id != null)
             {
-                //Almacen = almacenes.Find(x => x.Id.Equals(id));
+                Articulo = articulos.Find(x => x.Id.Equals(id));
+                Articulo.AlmacenId = Articulo.Almacen.Id;
+                Articulo.UnidadId = Articulo.Unidad.Id;
+                Articulo.UbicacionId = Articulo.Ubicacion.Id;
                 editar = true;
-            }
-
-            if (id != null)
-            {
                 saveValue = "Editar";
             }
             else
@@ -196,7 +198,10 @@
                 }
                 else
                 {
-                    await localStorage.SetItemAsync<List<ArticuloModel>>("Almacenes", articulos);
+                    Articulo.Almacen = _almacenes.Find(x => x.Id == Articulo.AlmacenId);
+                    Articulo.Unidad = _unidades.Find(x => x.Id == Articulo.UnidadId);
+                    Articulo.Ubicacion = _ubicaciones.Find(x => x.Id == Articulo.UbicacionId);
+                    await localStorage.SetItemAsync<List<ArticuloModel>>("Articulos", articulos);
                     await JsRuntime.InvokeAsync<object>("blazorInterop.saveSwal");
                     NavigationManager.NavigateTo("listaArticulos");
                 }

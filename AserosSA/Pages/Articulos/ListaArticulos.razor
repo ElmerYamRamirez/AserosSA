@@ -6,7 +6,6 @@
 @inject ModalService _modalService
 @inject NavigationManager NavigationManager
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
-@inject NavigationManager NavigationManager
 
 
 <div class="col-sm-12" style="text-align:left;margin-top:10px;">
@@ -67,7 +66,7 @@
     </ActionColumn>
     <ActionColumn>
         <Space>
-            <a href="/altaArticulo/1" title="Editar">
+            <a title="Editar" @onclick="()=>Edit(context.Id)">
                 <span class="oi oi-pencil"></span>
             </a>
         </Space>
@@ -178,6 +177,12 @@
             await localStorage.SetItemAsync<List<ArticuloModel>>("Articulos", articulos);
             _total = articulos.Count;
         }
+    }
+
+    private async Task Edit(string id)
+    {
+        await localStorage.SetItemAsync<List<ArticuloModel>>("Articulos", articulos);
+        NavigationManager.NavigateTo($"editararticulo/{id}");
     }
 
     private string txtValue { get; set; }
