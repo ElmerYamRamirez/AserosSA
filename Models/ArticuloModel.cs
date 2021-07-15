@@ -22,6 +22,7 @@ namespace Models
         public int Cantidad { get; set; }
 
         //[MinLength(0, ErrorMessage = "Debe ser mayor a 0")]
+        [Display(Name ="Precio unitario")]
         public double PrecioUnitario { get; set; }
 
         //[MinLength(0, ErrorMessage = "Debe ser mayor a 0")]
@@ -34,11 +35,13 @@ namespace Models
         public int Maximo { get; set; }
 
         //[MinLength(0, ErrorMessage = "Debe ser mayor a 0")]
+        [Display(Name ="Punto de reorden")]
         public int PuntoReorden { get; set; }
 
         public string UnidadId { get; set; }
         public UnidadModel Unidad { get; set; }
 
+        [Display(Name ="Ubicación")]
         public string UbicacionId { get; set; }
         public UbicacionModel Ubicacion { get; set; }
 

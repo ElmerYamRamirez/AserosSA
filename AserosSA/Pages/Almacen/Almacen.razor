@@ -91,12 +91,6 @@
     protected override async Task OnInitializedAsync()
     {
 
-        /*almacenes = new List<AlmacenModel> {
-            new AlmacenModel{ Id = 1, Nombre = "MP", Descripcion = "Materia Prima"},
-            new AlmacenModel{ Id = 2, Nombre = "REFAC", Descripcion = "Refacciones"},
-            new AlmacenModel{ Id = 3, Nombre = "PV", Descripcion = "Productos Varios"}
-        };*/
-
         almacenes = await localStorage.GetItemAsync<List<AlmacenModel>>("Almacenes");
 
         if (almacenes == null) {

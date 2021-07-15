@@ -54,9 +54,9 @@
     <AntDesign.Column @bind-Field="@context.Minimo" Sortable />
     <AntDesign.Column @bind-Field="@context.Maximo" Sortable />
     <AntDesign.Column @bind-Field="@context.PuntoReorden" Sortable />
-    <AntDesign.Column TData="string" DataIndex="Unidad.Id" Sortable />
-    <AntDesign.Column TData="string" DataIndex="Ubicacion.Id" Sortable />
-    <AntDesign.Column TData="string" DataIndex="Almacen.Id" Sortable />
+    <AntDesign.Column Title="Unidad" TData="string" DataIndex="Unidad.Descripcion" />
+    <AntDesign.Column TData="string" DataIndex="Ubicacion.Id" />
+    <AntDesign.Column TData="string" DataIndex="Almacen.Id" />
 
     <ActionColumn>
         <Space>
@@ -74,7 +74,7 @@
     </ActionColumn>
     <ActionColumn>
         <Space>
-            <a title="Eliminar" @onclick="Eliminar">
+            <a title="Eliminar" @onclick="()=>Delete(context)">
                 <span class="oi oi-trash"></span>
             </a>
         </Space>
@@ -90,38 +90,16 @@
 
 @code {
 
-    CasosDeUso[] casoDeUso;
-
     IEnumerable<ArticuloModel> selectedRows;
     ITable table;
 
     int _pageIndex = 1;
-    int _pageSize = 5;
+    int _pageSize = 4;
     int _total = 0;
 
     List<ArticuloModel> articulos = null;
     List<CriteriodeBusqueda> _list;
     string _selectedValue1;
-
-    protected override async Task OnInitializedAsync()
-    {
-        casoDeUso = await GetForecastAsync(_pageIndex, _pageSize);
-        _total = casoDeUso.Length;
-
-        _list = new List<CriteriodeBusqueda>{
-            new CriteriodeBusqueda {Value = "Clave", Name = "Clave"},
-            new CriteriodeBusqueda {Value = "Descripción", Name = "Descripción"}
-        };
-
-        articulos = new List<ArticuloModel> {
-            new ArticuloModel{Id = "ART-01", Nombre = "Hojas blancas", Descripcion="Paquete de hojas blancas t/carta", Marca = "Scribe",
-                Cantidad = 40, PrecioUnitario = 70.00, Minimo = 30, Maximo = 150, PuntoReorden = 50,
-                Unidad = new UnidadModel{Id = "", Simbolo="Caj", Descripcion = "Caja de Cartón", Estatus = "activo" },
-                Almacen = new AlmacenModel{ Id = "ALM-PRUE-00", Nombre = "Almacen" , Descripcion ="Almacen de prueba", Status ="Activo"},
-                //Ubicacion = new UbicacionModel{Id = 1, Estante = "1" , Zona = 3}
-            }
-        };
-    }
 
     class CriteriodeBusqueda
     {
@@ -130,75 +108,56 @@
         public bool IsDisabled { get; set; }
     }
 
+    protected override async Task OnInitializedAsync()
+    {
+        _list = new List<CriteriodeBusqueda>{
+            new CriteriodeBusqueda {Value = "Clave", Name = "Clave"},
+            new CriteriodeBusqueda {Value = "Descripción", Name = "Descripción"}
+        };
+
+        articulos = await localStorage.GetItemAsync<List<ArticuloModel>>("Articulos");
+
+        if (articulos == null) {
+            //crear articulos por default
+            //articulos = await GetArticulosAsync(_pageIndex, _pageSize);
+
+            articulos = new List<ArticuloModel>
+            {
+                new ArticuloModel{Id = "ART-01", Nombre = "Hojas blancas", Descripcion="Paquete de hojas blancas t/carta", Marca = "Scribe",
+                    Cantidad = 40, PrecioUnitario = 70.00, Minimo = 30, Maximo = 150, PuntoReorden = 50,
+                    Unidad = new UnidadModel{Id = "UNI-PRUE-00", Simbolo="Caj", Descripcion = "Caja de Cartón", Estatus = "activo" },
+                    Almacen = new AlmacenModel{ Id = "ALM-PRUE-00", Nombre = "Almacen" , Descripcion ="Almacen de prueba", Status ="Activo"},
+                    Ubicacion = new UbicacionModel{Id = "UBI-PRUE-00", Estante = "1" , Descripcion = "ubicacion de prueba"}
+                }
+            };
+        }
+
+        _total = articulos.Count;
+    }
+
     private void OnSelectedItemChangedHandler(CriteriodeBusqueda value)
     {
         Console.WriteLine($"selected: ${value?.Name}");
     }
 
-    public class CasosDeUso
+    public Task<ArticuloModel[]> GetArticulosAsync(int pageIndex, int pageSize)
     {
-        public int Id { get; set; }
-
-        [DisplayName("Clave")]
-        public string? ClavePrincipal { get; set; }
-
-        [DisplayName("Descripcion")]
-        public string Descripcion { get; set; }
-
-        [DisplayName("Marca")]
-        public string Marca { get; set; }
-
-        [DisplayName("Maximo")]
-        public string Maximo { get; set; }
-
-        [DisplayName("Punto de Reorden")]
-        public string PuntoReorden { get; set; }
-
-        [DisplayName("Minimo")]
-        public string Minimo { get; set; }
-
-    }
-
-    private static readonly string[] ClavesPrincipales = new[]
-    {
-        "100-PAP-001-PZA", "150-CLV-002-PZA", "200-PAP-001-PZA", "250-CLV-002-PZA", "300-PAP-001-PZA", "350-CLV-002-PZA", "400-PAP-001-PZA"
-    };
-    private static readonly string[] Descripciones = new[]
-    {
-        "ACETATOS", "GALVANIZADOS"
-    };
-    private static readonly string[] Marcas = new[]
-    {
-        "IMPERIAL", "POP", "HILLMAN", "ARROW", "MEGA"
-    };
-    private static readonly string[] Maximos = new[]
-    {
-        "2,000", "3,000", "4,000", "5,000", "Media"
-    };
-    private static readonly string[] PuntosReordenes = new[]
-    {
-         "100", "150", "200", "250", "300", "350", "400", "450", "500", "550", "600"
-    };
-    private static readonly string[] Minimos = new[]
-    {
-        "100", "200", "300"
-    };
-
-    public Task<CasosDeUso[]> GetForecastAsync(int pageIndex, int pageSize)
-    {
-        var rng = new Random();
         return Task.FromResult(Enumerable.Range((pageIndex - 1) * pageSize + 1, 11).Select(index =>
         {
-
-            return new CasosDeUso
+            return new ArticuloModel
             {
-                Id = index,
-                ClavePrincipal = ClavesPrincipales[rng.Next(ClavesPrincipales.Length)],
-                Descripcion = Descripciones[rng.Next(Descripciones.Length)],
-                Marca = Marcas[rng.Next(Marcas.Length)],
-                Maximo = Maximos[rng.Next(Maximos.Length)],
-                PuntoReorden = PuntosReordenes[rng.Next(PuntosReordenes.Length)],
-                Minimo = Minimos[rng.Next(Minimos.Length)],
+                Id = "ART-PRUE-00",
+                Nombre = "articulo-1",
+                Descripcion = "descripcion",
+                Marca = "marca",
+                Cantidad = 10,
+                PrecioUnitario = 2.5,
+                Minimo = 10,
+                Maximo = 20,
+                PuntoReorden = 15,
+                UnidadId = "key-unidad",
+                UbicacionId = "key-ubi",
+                AlmacenId = "key-almacen"
             };
         }).ToArray());
     }
@@ -209,26 +168,22 @@
         NavigationManager.NavigateTo("altaArticulo");
     }
 
-
-    public async Task Eliminar()
+    private async Task Delete(ArticuloModel item)
     {
-        //await JsRuntime.InvokeAsync<string>(identifier: "cancelSwal");
-        var isTrue = await _modalService.ConfirmAsync(new ConfirmOptions()
+        bool borrarArticulo;
+        borrarArticulo = await JsRuntime.InvokeAsync<bool>("blazorInterop.deleteSwal", item.Nombre);
+        if (borrarArticulo)
         {
-            Title = "Elimar",
-            Icon =@<Icon Type="exclamation-circle" Theme="Outline"></Icon>,
-Content = "¿Estas seguro que deseas eliminar este articulo?",
-OkText = "Si",
-CancelText = "Cancelar"
-});
+            articulos.Remove(item);
+            await localStorage.SetItemAsync<List<ArticuloModel>>("Articulos", articulos);
+            _total = articulos.Count;
+        }
+    }
 
-if (isTrue)
-NavigationManager.NavigateTo("/listaArticulos");
-}
-private string txtValue { get; set; }
-private async Task buscar()
-{
-await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Bucando...{txtValue}");
-}
+    private string txtValue { get; set; }
+    private async Task buscar()
+    {
+        await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Bucando...{txtValue}");
+    }
 }
 
