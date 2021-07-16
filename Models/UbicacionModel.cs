@@ -27,21 +27,33 @@ namespace Models
         public string Dimension { get; set; }
 
         [Required(ErrorMessage = "El pasillo es requerido")]
-        public string Pasillo { get; set; }
+        public int Pasillo { get; set; }
 
         [Required(ErrorMessage = "El estante es requerido")]
-        public string Estante { get; set; }
+        public int Estante { get; set; }
 
         [Required(ErrorMessage = "El nivel es requerido")]
-        public string Nivel { get; set; }
+        public int Nivel { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            if (Id == Nombre)
+            if (Pasillo < 0)
             {
                 yield return new ValidationResult(
-                    $"El id {Id} ya existe.",
-                    new[] { nameof(Id) });
+                    $"El valor de pasillo no puede ser negativo",
+                    new[] { nameof(Pasillo) });
+            }
+            if (Estante < 0)
+            {
+                yield return new ValidationResult(
+                    $"El valor de estante no puede ser negativo",
+                    new[] { nameof(Estante) });
+            }
+            if (Nivel < 0)
+            {
+                yield return new ValidationResult(
+                    $"El valor de nivel puede ser negativo",
+                    new[] { nameof(Nivel) });
             }
         }
     }

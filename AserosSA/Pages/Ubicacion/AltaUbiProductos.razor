@@ -8,123 +8,183 @@
 @inject ModalService _modalService
 @inject MessageService _message
 
-@if (id == null)
+<div class="rounded w-75 bg-light mx-auto" style="margin:15px; padding: 15px;">
+        @if (id == null)
+        {
+            <h3 class="text-center">Alta Ubicación</h3>
+        }
+        else
+        {
+            <h3 class="text-center">Editar Ubicación</h3>
+        }
+    <Divider />
+    <Form @ref="form"
+          ValidateOnChange="true"
+          Model="@Ubicacion"
+          LabelColSpan="24"
+          WrapperColSpan="8"
+          OnFinish="OnFinish"
+          OnFinishFailed="OnFinishFailed"
+          Size="ntSizeLDSType.Small">
+        <Row Gutter="16">
+            <AntDesign.Col Span="12">
+                <FormItem Label="Clave" LabelColSpan="24" WrapperColSpan="24">
+                    <Input id="clave" @bind-Value="@context.Id" />
+                </FormItem>
+            </AntDesign.Col>
+            <AntDesign.Col Span="12">
+                <FormItem Label="Nombre" LabelColSpan="24" WrapperColSpan="24">
+                    <Input id="nombre" @bind-Value="@context.Nombre" />
+                </FormItem>
+            </AntDesign.Col>
+        </Row>
+        <Row Gutter="16">
+            <AntDesign.Col Span="24">
+                <FormItem Label="Descripción" LabelColSpan="24" WrapperColSpan="24">
+                    <TextArea @bind-Value="@context.Descripcion" />
+                </FormItem>
+            </AntDesign.Col>
+        </Row>
+        <Row Gutter="16">
+            <AntDesign.Col Span="24">
+                <FormItem Label="Status">
+                    <Select DataSource="@_list"
+                            @bind-Value="@context.Status"
+                            ValueName="@nameof(Person.Value)"
+                            LabelName="@nameof(Person.Name)"
+                            Style="width: 120px;"
+                            Placeholder="Choose"
+                            AllowClear>
+                    </Select>
+                </FormItem>
+            </AntDesign.Col>
+        </Row>
+        <Row Gutter="16">
+            <AntDesign.Col Span="6">
+                <FormItem Label="Dimension">
+                    <Select DataSource="@_dimenciones"
+                            @bind-Value="@context.Dimension"
+                            ValueName="@nameof(Person.Value)"
+                            LabelName="@nameof(Person.Name)"
+                            OnSelectedItemChanged="OnSelectedItemChangedHandler"
+                            Style="width:120px">
+                    </Select>
+                </FormItem>
+            </AntDesign.Col>
+            <AntDesign.Col Span="6">
+                <FormItem Label="Pasillo">
+                    <AntDesign.InputNumber id="Pasillo" @bind-Value="@context.Pasillo" />
+                </FormItem>
+            </AntDesign.Col>
+            <AntDesign.Col Span="6">
+                <FormItem Label="Estante">
+                    <AntDesign.InputNumber id="Estante" @bind-Value="@context.Estante" />
+                </FormItem>
+            </AntDesign.Col>
+            <AntDesign.Col Span="6">
+                <FormItem Label="Nivel">
+                    <AntDesign.InputNumber id="Nivel" @bind-Value="@context.Nivel" Disabled="@disabled" />
+                </FormItem>
+            </AntDesign.Col>
+        </Row>
+        <FormItem WrapperColSpan="16">
+            <Button OnClick="save">
+                Guardar
+            </Button>
+            <Button @onclick="cancel" HtmlType="submit" Danger>
+                Cancelar
+            </Button>
+        </FormItem>
+    </Form>
+</div>
+
+    @code
 {
-    <h3>Alta Ubicación</h3>
-}
-else
-{
-    <h3>Editar Ubicación</h3>
-}
+        [Parameter]
+        public string id { get; set; }
+        bool editar = false;
 
-<Form @ref="form"
-      ValidateOnChange="true"
-      Model="@Ubicacion"
-      LabelColSpan="24"
-      WrapperColSpan="8"
-      OnFinish="OnFinish"
-      OnFinishFailed="OnFinishFailed"
-      Size="ntSizeLDSType.Small">
-    <FormItem Label="Clave">
-        <Input id="clave" @bind-Value="@context.Id" />
-    </FormItem>
-    <FormItem Label="Nombre">
-        <Input id="nombre" @bind-Value="@context.Nombre" />
-    </FormItem>
-    <FormItem Label="Descripción">
-        <TextArea @bind-Value="@context.Descripcion" />
-    </FormItem>
-    <FormItem Label="Status">
-        <Select DataSource="@_list"
-                @bind-Value="@context.Status"
-                ValueName="@nameof(Person.Value)"
-                LabelName="@nameof(Person.Name)"
-                Style="width: 120px;"
-                Placeholder="Choose"
-                AllowClear>
-        </Select>
-    </FormItem>
-    <FormItem Label="Dimension">
-        <Input id="Dimension" @bind-Value="@context.Dimension" />
-    </FormItem>
-    <FormItem Label="Pasillo">
-        <Input id="Pasillo" @bind-Value="@context.Pasillo" />
-    </FormItem>
-    <FormItem Label="Estante">
-        <Input id="Estante" @bind-Value="@context.Estante" />
-    </FormItem>
-    <FormItem Label="Nivel">
-        <Input id="Nivel" @bind-Value="@context.Nivel" />
-    </FormItem>
-    <FormItem WrapperColSpan="16">
-        <Button OnClick="save">
-            Guardar
-        </Button>
-        <Button @onclick="cancel" HtmlType="submit" Danger>
-            Cancelar
-        </Button>
-    </FormItem>
-</Form>
+        private UbicacionModel Ubicacion = new UbicacionModel();
+        AntDesign.Form<UbicacionModel> form;
 
-@code
-{
-    [Parameter]
-    public string id { get; set; }
-    bool editar = false;
+        List<UbicacionModel> ubicaciones = null;
 
-    private UbicacionModel Ubicacion = new UbicacionModel();
-    AntDesign.Form<UbicacionModel> form;
+        List<Person> _list;
 
-    List<UbicacionModel> ubicaciones = null;
+        private bool disabled = true;
 
-    List<Person> _list;
+        List<Person> _dimenciones = new List<Person> {
+        new Person { Name = "2D", Value = "2D"},
+        new Person { Name = "3D", Value = "3D"}
+    };
 
-    class Person
-    {
-        public string Value { get; set; }
-        public string Name { get; set; }
-    }
+        class Person
+        {
+            public string Value { get; set; }
+            public string Name { get; set; }
+        }
 
-    protected override async Task OnInitializedAsync()
-    {
-        _list = new List<Person>
+        protected override async Task OnInitializedAsync()
+        {
+            _list = new List<Person>
     {
             new Person {Value = "Activo", Name = "Activo"},
             new Person {Value = "Inactivo", Name = "Inactivo"}
         };
 
-        ubicaciones = await localStorage.GetItemAsync<List<UbicacionModel>>("Ubicaciones");
+            ubicaciones = await localStorage.GetItemAsync<List<UbicacionModel>>("Ubicaciones");
 
-        if (!(id == null))
-        {
-            Ubicacion = ubicaciones.Find(x => x.Id.Equals(id));
-            editar = true;
-        }
-    }
-
-    private void OnFinish(EditContext editContext)
-    {
-        Console.WriteLine($"Success:{JsonSerializer.Serialize(Ubicacion)}");
-    }
-
-    private void OnFinishFailed(EditContext editContext)
-    {
-        Console.WriteLine($"Failed:{JsonSerializer.Serialize(Ubicacion)}");
-    }
-
-    private async Task save()
-    {
-        if (form.Validate())
-        {
-            if (editar == false)
+            if (!(id == null))
             {
-                if (ubicaciones.Exists(x => x.Id == Ubicacion.Id))
+                Ubicacion = ubicaciones.Find(x => x.Id.Equals(id));
+                editar = true;
+            }
+        }
+
+        private void OnSelectedItemChangedHandler(Person value)
+        {
+            Console.WriteLine($"selected: ${value?.Name}");
+            if (value.Name == "2D")
+            {
+                disabled = true;
+                Ubicacion.Nivel = 0;
+            }
+            else if (value.Name == "3D")
+            {
+                disabled = false;
+            }
+        }
+
+        private void OnFinish(EditContext editContext)
+        {
+            Console.WriteLine($"Success:{JsonSerializer.Serialize(Ubicacion)}");
+        }
+
+        private void OnFinishFailed(EditContext editContext)
+        {
+            Console.WriteLine($"Failed:{JsonSerializer.Serialize(Ubicacion)}");
+        }
+
+        private async Task save()
+        {
+            if (form.Validate())
+            {
+                if (editar == false)
                 {
-                    await JsRuntime.InvokeAsync<object>("blazorInterop.errorFormSwal", $"El id {Ubicacion.Id} ya existe");
+                    if (ubicaciones.Exists(x => x.Id == Ubicacion.Id))
+                    {
+                        await JsRuntime.InvokeAsync<object>("blazorInterop.errorFormSwal", $"El id {Ubicacion.Id} ya existe");
+                    }
+                    else
+                    {
+                        ubicaciones.Add(Ubicacion);
+                        await localStorage.SetItemAsync<List<UbicacionModel>>("Ubicaciones", ubicaciones);
+                        await JsRuntime.InvokeAsync<object>("blazorInterop.saveSwal");
+                        NavigationManager.NavigateTo("ubicacionProductos");
+                    }
                 }
                 else
                 {
-                    ubicaciones.Add(Ubicacion);
                     await localStorage.SetItemAsync<List<UbicacionModel>>("Ubicaciones", ubicaciones);
                     await JsRuntime.InvokeAsync<object>("blazorInterop.saveSwal");
                     NavigationManager.NavigateTo("ubicacionProductos");
@@ -132,21 +192,14 @@ else
             }
             else
             {
-                await localStorage.SetItemAsync<List<UbicacionModel>>("Ubicaciones", ubicaciones);
-                await JsRuntime.InvokeAsync<object>("blazorInterop.saveSwal");
-                NavigationManager.NavigateTo("ubicacionProductos");
+                await JsRuntime.InvokeAsync<object>("blazorInterop.errorFormSwal");
             }
         }
-        else
+
+        private async Task cancel()
         {
-            await JsRuntime.InvokeAsync<object>("blazorInterop.errorFormSwal");
+            await JsRuntime.InvokeAsync<object>("blazorInterop.CancelSwal");
+            NavigationManager.NavigateTo("ubicacionProductos");
         }
-    }
 
-    private async Task cancel()
-    {
-        await JsRuntime.InvokeAsync<object>("blazorInterop.CancelSwal");
-        NavigationManager.NavigateTo("ubicacionProductos");
     }
-
-}

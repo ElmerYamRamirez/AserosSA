@@ -18,7 +18,6 @@
                 @bind-Value="@_selectedValue1"
                 ValueName="@nameof(CriteriodeBusqueda.Value)"
                 LabelName="@nameof(CriteriodeBusqueda.Name)"
-                DisabledName="@nameof(CriteriodeBusqueda.IsDisabled)"
                 Style="width:120px"
                 OnSelectedItemChanged="OnSelectedItemChangedHandler">
         </Select>
@@ -104,14 +103,16 @@
     {
         public string Value { get; set; }
         public string Name { get; set; }
-        public bool IsDisabled { get; set; }
     }
 
     protected override async Task OnInitializedAsync()
     {
         _list = new List<CriteriodeBusqueda>{
             new CriteriodeBusqueda {Value = "Clave", Name = "Clave"},
-            new CriteriodeBusqueda {Value = "Descripción", Name = "Descripción"}
+            new CriteriodeBusqueda {Value = "Nombre", Name = "Nombre"},
+            new CriteriodeBusqueda {Value = "Descripción", Name = "Descripción"},
+            new CriteriodeBusqueda {Value = "Marca", Name = "Marca"},
+            new CriteriodeBusqueda {Value = "Precio", Name = "Precio"}
         };
 
         articulos = await localStorage.GetItemAsync<List<ArticuloModel>>("Articulos");
@@ -126,7 +127,7 @@
                     Cantidad = 40, PrecioUnitario = 70.00, Minimo = 30, Maximo = 150, PuntoReorden = 50,
                     Unidad = new UnidadModel{Id = "UNI-PRUE-00", Simbolo="Caj", Descripcion = "Caja de Cartón", Estatus = "activo" },
                     Almacen = new AlmacenModel{ Id = "ALM-PRUE-00", Nombre = "Almacen" , Descripcion ="Almacen de prueba", Status ="Activo"},
-                    Ubicacion = new UbicacionModel{Id = "UBI-PRUE-00", Estante = "1" , Descripcion = "ubicacion de prueba"}
+                    Ubicacion = new UbicacionModel{Id = "UBI-PRUE-00", Estante = 1 , Descripcion = "ubicacion de prueba"}
                 }
             };
         }
@@ -188,6 +189,32 @@
     private string txtValue { get; set; }
     private async Task buscar()
     {
+        articulos = await localStorage.GetItemAsync<List<ArticuloModel>>("Articulos");
+
+        if (txtValue != null)
+        {
+            switch (_selectedValue1)
+            {
+                case "Nombre":
+                    articulos = articulos.FindAll(x => x.Nombre.Contains(txtValue, StringComparison.CurrentCultureIgnoreCase));
+                    break;
+                case "Descripción":
+                    articulos = articulos.FindAll(x => x.Descripcion.Contains(txtValue, StringComparison.CurrentCultureIgnoreCase));
+                    break;
+                case "Clave":
+                    articulos = articulos.FindAll(x => x.Id.Contains(txtValue, StringComparison.CurrentCultureIgnoreCase));
+                    break;
+                case "Marca":
+                    articulos = articulos.FindAll(x => x.Marca.Contains(txtValue, StringComparison.CurrentCultureIgnoreCase));
+                    break;
+                case "Precio":
+                    articulos = articulos.FindAll(x => x.PrecioUnitario == Int32.Parse(txtValue));
+                    break;
+                default:
+                    await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Selecciona un filtro");
+                    break;
+            }
+        }
         await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Bucando...{txtValue}");
     }
 }
