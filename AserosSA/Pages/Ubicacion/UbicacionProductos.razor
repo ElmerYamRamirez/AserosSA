@@ -115,6 +115,7 @@
             new Person {Value = "Clave", Name = "Clave"},
             new Person {Value = "Nombre", Name = "Nombre"},
             new Person {Value = "Descripcion", Name = "Descripción"},
+            new Person {Value = "Dimencion", Name = "Dimencion"},
             new Person {Value = "Status", Name = "Status"},
         };
     }
@@ -169,7 +170,7 @@
 
     private async Task buscar()
     {
-        ubicaciones = await localStorage.GetItemAsync<List<UbicacionModel>>("Almacenes");
+        ubicaciones = await localStorage.GetItemAsync<List<UbicacionModel>>("Ubicaciones");
 
         if (txtValue != null)
         {
@@ -183,6 +184,9 @@
                     break;
                 case "Clave":
                     ubicaciones = ubicaciones.FindAll(x => x.Id.Contains(txtValue, StringComparison.CurrentCultureIgnoreCase));
+                    break;
+                case "Dimencion":
+                    ubicaciones = ubicaciones.FindAll(x => x.Dimension.Contains(txtValue, StringComparison.CurrentCultureIgnoreCase));
                     break;
                 case "Status":
                     ubicaciones = ubicaciones.FindAll(x => x.Status.Contains(txtValue, StringComparison.CurrentCultureIgnoreCase));
