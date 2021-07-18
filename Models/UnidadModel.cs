@@ -14,6 +14,8 @@ namespace Models
         [Required(ErrorMessage = "La clave es requerida")]
         public string Id { get; set; }
 
+        [RegularExpression(@"^[A-Za-z ]",
+         ErrorMessage = "Caracteres no permitidos. Ingrese unicamente caracteres de la [A-Z]")]
         [Required(ErrorMessage = "El simbolo es requerido")]
         [StringLength(3, ErrorMessage = "Simbolo es muy largo.")]
         public string Simbolo { get; set; }

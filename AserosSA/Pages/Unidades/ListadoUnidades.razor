@@ -181,11 +181,11 @@
                     unidades = unidades.FindAll(x => x.Estatus.Contains(txtValue, StringComparison.CurrentCultureIgnoreCase));
                     break;
                 default:
-                    await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Selecciona un filtro");
+                    await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Selecciona un filtro...");
                     break;
             }
         }
-        await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Bucando...{txtValue}");
+        await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Buscando...{txtValue}");
         //await JsRuntime.InvokeAsync<Object>(identifier: "buscarSwal");
     }
 
