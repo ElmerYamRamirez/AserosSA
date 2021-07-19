@@ -192,11 +192,11 @@
                     ubicaciones = ubicaciones.FindAll(x => x.Status.Contains(txtValue, StringComparison.CurrentCultureIgnoreCase));
                     break;
                 default:
-                    await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Selecciona un filtro");
+                    await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Selecciona un filtro...");
                     break;
             }
         }
-        await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Bucando...{txtValue}");
+        await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Buscando...{txtValue}");
     }
 
 }
