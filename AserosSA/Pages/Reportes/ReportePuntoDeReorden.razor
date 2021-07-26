@@ -2,6 +2,7 @@
 @inject IJSRuntime JsRuntime
 @using System.ComponentModel
 @using AntDesign.TableModels
+@using Data
 
 
 <div class="col-sm-12" style="text-align:left; margin-top:10px;">
@@ -51,7 +52,7 @@
 <p>Página: @_pageIndex | Registros: @_pageSize | Total: @_total</p>
 
 <div class="col-sm-12" style="text-align:right; margin-top:10px;">
-    <Button Type="primary" @onclick="downloadMessage">Descargar Reporte</Button>
+    <Button class="btn btn-primary" @onclick="GenerateExcel">Descargar Reporte PO</Button>
 </div>
 <br />
 
@@ -196,6 +197,13 @@
     private void OnSelectedItemChangedHandler(Almacen value)
     {
         Console.WriteLine($"selected: ${value?.Name}");
+    }
+
+    private void GenerateExcel()
+    {
+        JsRuntime.InvokeAsync<object>(identifier: "swal", "Descargando Reporte...");
+        Report report = new Report();
+        report.GenerateExcel(JsRuntime);
     }
 }
 

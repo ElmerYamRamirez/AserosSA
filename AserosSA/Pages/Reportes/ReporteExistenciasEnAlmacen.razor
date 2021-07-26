@@ -2,6 +2,7 @@
 @inject IJSRuntime JsRuntime
 @using System.ComponentModel
 @using AntDesign.TableModels
+@using Data
 
 
 <div class="col-sm-12" style="text-align:left; margin-top:10px;">
@@ -51,7 +52,7 @@
 <p>Página: @_pageIndex | Registros: @_pageSize | Total: @_total</p>
 
 <div class="col-sm-12" style="text-align:right; margin-top:10px;">
-    <Button Type="primary" @onclick="downloadMessage">Descargar Reporte</Button>
+    <Button Type="primary" @onclick="GeneratePDFFile">Descargar Reporte</Button>
 </div>
 <br />
 
@@ -178,11 +179,6 @@
         //await JsRuntime.InvokeAsync<Object>(identifier: "buscarSwal");
     }
 
-    public async Task downloadMessage()
-    {
-        await JsRuntime.InvokeAsync<object>(identifier: "swal", "Descargando Reporte...");
-    }
-
     List<Almacen> _list;
     string _selectedValue1;
 
@@ -196,6 +192,14 @@
     private void OnSelectedItemChangedHandler(Almacen value)
     {
         Console.WriteLine($"selected: ${value?.Name}");
+    }
+
+    private async void GeneratePDFFile()
+    {
+        await JsRuntime.InvokeAsync<object>(identifier: "swal", "Descargando Reporte...");
+
+        Report report = new Report();
+        report.GeneratePDF(JsRuntime);
     }
 }
 
