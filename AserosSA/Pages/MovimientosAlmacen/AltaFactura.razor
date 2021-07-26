@@ -1,7 +1,7 @@
 ﻿@page "/altafactura"
-@page "/altaMovimiento/{id}"
+@page "/editarfactura/{id}"
 @using System.Text.Json;
-@using Models 
+@using Models
 @inject NavigationManager NavigationManager
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject IJSRuntime JsRuntime
@@ -56,35 +56,6 @@
             </Button>
             <Table DataSource="listOfData" TItem="DetalleFacturaModel" RowClassName="@(_=>"editable-row")" Bordered TableLayout="fixed" Size=@TableSize.Small>
                 <ChildContent Context="data">
-                    <Modal Title="@_title"
-                           Visible="@_visible"
-                           OnOk="() => saveEdit(data.Id)"
-                           OnCancel="@HandleCancel"
-                           DestroyOnClose="true">
-                        <FormItem Label="Articulo">
-                            <Select Mode="default"
-                                    DataSource="@_articulos"
-                                    @bind-Value="editCache[data.Id].data.Articulo"
-                                    LabelName="@nameof(articulo.Nombre)"
-                                    TItem="ArticuloModel"
-                                    TItemValue="ArticuloModel"
-                                    EnableSearch
-                                    OnSelectedItemsChanged="OnSelectedItemsChangedHandler">
-                                <SelectOptions>
-                                    @foreach (var item in _articulos)
-                                    {
-                                        <SelectOption TItemValue="ArticuloModel" TItem="ArticuloModel" Value=@item Label=@item.Nombre />
-                                    }
-                                </SelectOptions>
-                            </Select>
-                        </FormItem>
-                        <FormItem Label="Cantidad">
-                            <Input @bind-Value="editCache[data.Id].data.CantidadArticulos" />
-                        </FormItem>
-                        <FormItem>
-                            <Button OnClick="@(ResetFormHandler)">Reset Form</Button>
-                        </FormItem>
-                    </Modal>
                     <Column TData="int" Title="Id">
                         @data.Id
                     </Column>
@@ -113,7 +84,7 @@
                         }
                         else
                         {
-                            <a @onclick="() => saveEdit(data.Id)" class="save">Guardar</a>
+                            <a @onclick="() => saveEdit(data)" class="save">Guardar</a>
                             <Popconfirm Title="Cancelar?"
                                         OnConfirm="() => cancelEdit(data.Id)"
                                         OkText="Si"
@@ -139,18 +110,7 @@
         </Row>
         <Row Gutter="16">
             <AntDesign.Col Span="8">
-                @{
-                    double total = 0;
-                    if (listOfData != null) {
-                        foreach (DetalleFacturaModel x in listOfData)
-                        {
-                            total = total + x.Subtotal;
-                        }
-                    }
-                    context.Subtotal = total;
-                    context.Iva = total * 0.16;
-                    context.Total = context.Subtotal + context.Iva;
-                }
+                
                 <FormItem Label="Subtotal" LabelColSpan="24" WrapperColSpan="24">
                     @context.Subtotal
                 </FormItem>
@@ -178,6 +138,37 @@
         </Row>
     </Form>
 </div>
+<Modal Title="@_title"
+       Visible="@_visible"
+       OnOk="() =>saveEdit(detalle)"
+       OnCancel="@HandleCancel"
+       DestroyOnClose="true">
+    <Form @ref="_formArt"
+          Model="@detalle"
+          LabelCol="new ColLayoutParam { Span = 6 }"
+          WrapperCol="new ColLayoutParam { Span = 18 }">
+        <FormItem Label="Articulo">
+            <Select Mode="default"
+                    DataSource="@_articulos"
+                    @bind-Value="detalle.Articulo"
+                    LabelName="@nameof(articulo.Nombre)"
+                    TItem="ArticuloModel"
+                    TItemValue="ArticuloModel"
+                    EnableSearch
+                    OnSelectedItemsChanged="OnSelectedItemsChangedHandler">
+                <SelectOptions>
+                    @foreach (var item in _articulos)
+                    {
+                        <SelectOption TItemValue="ArticuloModel" TItem="ArticuloModel" Value=@item Label=@item.Nombre />
+                    }
+                </SelectOptions>
+            </Select>
+        </FormItem>
+        <FormItem Label="Cantidad">
+            <Input @bind-Value="detalle.CantidadArticulos" />
+        </FormItem>
+    </Form>
+</Modal>
 <style>
     .save {
         margin-right: 8px;
@@ -197,17 +188,17 @@
             new Person {Value = "Credito", Name = "Credito"},
             new Person { Value = "Debito", Name = "Debito" }
         };
-    //private List<DetalleFacturaModel> detalleFactura;
-    //private DetalleFacturaModel detalleFactura;
     IDictionary<int, (bool edit, DetalleFacturaModel data)> editCache = new Dictionary<int, (bool edit, DetalleFacturaModel data)>();
     DetalleFacturaModel[] listOfData = null;
 
     int i = 0;
     private ArticuloModel articulo = new ArticuloModel();
+    private DetalleFacturaModel detalle = new DetalleFacturaModel();
     private List<ArticuloModel> _articulos = null;
     List<FacturaModel> facturas = null;
     AntDesign.Form<FacturaModel> _form;
-    string _title = "Basic Modal";
+    AntDesign.Form<DetalleFacturaModel> _formArt;
+    string _title = "Agregar Articulo";
     bool _visible = false;
 
     class Person
@@ -229,8 +220,6 @@
 
     private async Task save()
     {
-        Console.WriteLine(factura);
-        //Console.WriteLine(listOfData);
         if (_form.Validate())
         {
             if (editar == false)
@@ -239,7 +228,8 @@
                 {
                     await JsRuntime.InvokeAsync<object>("blazorInterop.errorFormSwal", $"El id {factura.Id} ya existe");
                 }
-                else if (listOfData == null) {
+                else if (listOfData == null)
+                {
                     await JsRuntime.InvokeAsync<object>("blazorInterop.errorFormSwal", $"Articulos no puede estar vacio");
                 }
                 else
@@ -253,9 +243,11 @@
             }
             else
             {
+                factura.DetalleFactura = listOfData.ToList<DetalleFacturaModel>();
+                //facturas.Add(factura);
                 await localStorage.SetItemAsync<List<FacturaModel>>("Facturas", facturas);
                 await JsRuntime.InvokeAsync<object>("blazorInterop.saveSwal");
-                NavigationManager.NavigateTo("listaArticulos");
+                NavigationManager.NavigateTo("facturas");
             }
         }
         else
@@ -275,6 +267,8 @@
         var data = editCache[id];
         data.edit = true;
         editCache[id] = data;
+        detalle = listOfData[id];
+        //updateEditCache();
         _visible = true;
     }
 
@@ -284,24 +278,56 @@
         editCache[id] = new(false, data);
     }
 
-    void saveEdit(int id)
+    void saveEdit(DetalleFacturaModel deta)
     {
-        var data = listOfData.FirstOrDefault(item => item.Id == id);
-        editCache[id] = new(false, data);
+        //Console.WriteLine(JsonSerializer.Serialize(deta));
+        Console.WriteLine(JsonSerializer.Serialize(i));
+        Console.WriteLine(listOfData);
+        if (listOfData == null) {
+            listOfData = listOfData.Append(deta);
+        }
+        else{
+            //si el editcahe.edit == true
+            //if (editCache[deta.Id].edit == true) { 
+
+            //}
+            //buscar detalle en listofdata
+            //actualizar el detalle
+            //if (deta.Id == 0)
+            if (editCache[deta.Id].edit == false)
+            {
+                deta.Id = i;
+                listOfData = listOfData.Append(deta);
+            }
+            //var data = listOfData.FirstOrDefault(item => item.Id == deta.Id);
+            //listOfData[data.Id] = deta;
+            detalle = new DetalleFacturaModel();
+            ///listOfData[detalle.Id] = data;
+        }
+        //var data = listOfData.FirstOrDefault(item => item.Id == deta.Id);
+        //editCache[deta.Id] = new(false, data);
+        updateEditCache();
         _visible = false;
     }
 
     void updateEditCache()
     {
-        if (listOfData.Length > 0) {
-
-            for (i = 0; i < listOfData.Length - 1; i++)
+        double total = 0;
+        if (listOfData.Length > 0)
+        {
+            for (i = 0; i < listOfData.Length; i++)
             {
                 editCache[listOfData[i].Id] = new(false, listOfData[i]);
+                total = total + listOfData[i].Subtotal;
             }
-            editCache[listOfData[listOfData.Length -1].Id] = new(true, listOfData[listOfData.Length-1]);
+
+            factura.Subtotal = total;
+            factura.Iva = total * 0.16;
+            factura.Total = total + (total * 0.16);
 
         }
+
+        Console.WriteLine(i);
 
         /*listOfData.ForEach(item =>
         {
@@ -317,31 +343,28 @@
         _articulos = await localStorage.GetItemAsync<List<ArticuloModel>>("Articulos");
         facturas = await localStorage.GetItemAsync<List<FacturaModel>>("Facturas");
         //listOfData = Enumerable.Range(0, 100).Select(i => new ItemData { Id = $"{i}", Name = $"Edrward {i}", Age = 32, Address = $"London Park no. {i}" }).ToArray();
-        //updateEditCache();
 
         if (id != null)
         {
             factura = facturas.Find(x => x.Id.Equals(id));
+            listOfData = factura.DetalleFactura.ToArray<DetalleFacturaModel>();
+            updateEditCache();
             editar = true;
         }
     }
 
     void addArticle()
     {
-        listOfData = listOfData.Append(new DetalleFacturaModel { Id = i, Articulo = new ArticuloModel { PrecioUnitario = 0} });
-        updateEditCache();
-        i++;
+        //listOfData = listOfData.Append(new DetalleFacturaModel { Id = i, Articulo = new ArticuloModel { PrecioUnitario = 0 } });
+        //updateEditCache();
+        //detalle = listOfData.Last();
+        //detalle = new DetalleFacturaModel();
         _visible = true;
     }
 
     private void OnSelectedItemsChangedHandler(IEnumerable<ArticuloModel> values)
     {
         Console.WriteLine($"selected: ${string.Join(",", values)}");
-    }
-
-    private void ResetFormHandler()
-    {
-        _form.Reset();
     }
 
     private void HandleOk(MouseEventArgs e, int id)
