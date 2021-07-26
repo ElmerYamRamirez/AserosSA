@@ -1,158 +1,174 @@
 ﻿@page "/altafactura"
-@page "/altaMovimiento/{id:int}"
+@page "/editarfactura/{id}"
 @using System.Text.Json;
+@using Models
 @inject NavigationManager NavigationManager
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject IJSRuntime JsRuntime
 
 
-<h3>Agregar Factura</h3>
-
-
-
-<Form Layout="FormLayout.Horizontal" Style="padding-top:50px"
-      Model="@model"
-      OnFinish="OnFinish"
-      OnFinishFailed="OnFinishFailed"
-      LabelCol="GetFormLabelCol()"
-      WrapperCol="GetFormWrapperCol()"
-      Size="@model.Size">
-
-    <FormItem Label="Clave de referencia">
-        <Input @bind-Value="@context.Input" />
-    </FormItem>
-    <FormItem Label="Fecha">
-        <DatePicker @bind-Value="@context.DatePicker" />
-    </FormItem>
-    <FormItem Label="Clave proveedor">
-        <Input @bind-Value="@context.ClaveProveedor" />
-    </FormItem>
-
-    <FormItem Label="Comentarios">
-        <TextArea @bind-Value="@context.Comentario" />
-    </FormItem>
-
-    <Divider Orientation="left" Style="font-weight:bold">Articulos</Divider>
-    <Button OnClick="addArticle" Type="primary" Style="margin-bottom:16px">
-        Agregar un articulo
-    </Button>
-    <Table DataSource="listOfData" TItem="ItemData" RowClassName="@(_=>"editable-row")" Bordered TableLayout="fixed" Size=@TableSize.Small>
-        <ChildContent Context="data">
-            <Column TData="string" Title="Clave">
-                @if (!editCache[data.Clave].edit)
-                {
-                    @data.ClaveArti
-                }
-                else
-                {
-                    <Input @bind-Value="editCache[data.Clave].data.ClaveArti" />
-                }
-            </Column>
-            <Column TData="string" Title="Tipo de Unidad">
-                @if (!editCache[data.Clave].edit)
-                {
-                    @data.Unidad
-                }
-                else
-                {
-                    <Select Mode="default"
-                            DataSource="@_persons"
-                            @bind-Value="editCache[data.Clave].data.Unidad"
+<div class="rounded w-75 bg-light mx-auto" style="margin:15px; padding: 15px;">
+    @if (id == null)
+    {
+        <h3 class="text-center">Agregar factura</h3>
+    }
+    else
+    {
+        <h3 class="text-center">Editar Factura</h3>
+    }
+    <Divider />
+    <Form @ref="_form"
+          Layout="FormLayout.Horizontal"
+          Model="@factura"
+          OnFinish="OnFinish"
+          OnFinishFailed="OnFinishFailed"
+          LabelColSpan="4"
+          WrapperColSpan="14"
+          Size="ntSizeLDSType.Small">
+        <Row Gutter="16">
+            <AntDesign.Col Span="12">
+                <FormItem Label="Clave de referencia" LabelColSpan="24" WrapperColSpan="24">
+                    <Input @bind-Value="@context.Id" />
+                </FormItem>
+            </AntDesign.Col>
+            <AntDesign.Col Span="12">
+                <FormItem Label="Fecha" LabelColSpan="24" WrapperColSpan="24">
+                    <DatePicker @bind-Value="@context.FechaFactura" />
+                </FormItem>
+            </AntDesign.Col>
+        </Row>
+        <Row Gutter="16">
+            <AntDesign.Col Span="12">
+                <FormItem Label="Clave proveedor" LabelColSpan="24" WrapperColSpan="24">
+                    <Input @bind-Value="@context.NombreProveedor" />
+                </FormItem>
+            </AntDesign.Col>
+            <AntDesign.Col Span="12">
+                <FormItem Label="Comentarios" LabelColSpan="24" WrapperColSpan="24">
+                    <TextArea @bind-Value="@context.Comentarios" />
+                </FormItem>
+            </AntDesign.Col>
+        </Row>
+        <Row>
+            <Divider Orientation="left" Style="font-weight:bold">Articulos</Divider>
+            <Button OnClick="addArticle" Type="primary" Style="margin-bottom:16px">
+                Agregar un articulo
+            </Button>
+            <Table DataSource="listOfData" TItem="DetalleFacturaModel" RowClassName="@(_=>"editable-row")" Bordered TableLayout="fixed" Size=@TableSize.Small>
+                <ChildContent Context="data">
+                    <Column TData="int" Title="Id">
+                        @data.Id
+                    </Column>
+                    <Column TData="string" Title="Articulo">
+                        @data.Articulo.Nombre
+                    </Column>
+                    <Column TData="double" Title="Precio">
+                        @data.Articulo.PrecioUnitario
+                    </Column>
+                    <Column TData="int" Title="Cantidad">
+                        @data.CantidadArticulos
+                    </Column>
+                    <Column TData="double" Title="Subtotal">
+                        @data.Subtotal
+                    </Column>
+                    <Column TData="double" Title="%IVA">
+                        @data.Iva
+                    </Column>
+                    <Column TData="double" Title="Total con IVA">
+                        @data.Total
+                    </Column>
+                    <ActionColumn Title="Acciones">
+                        @if (!editCache[data.Id].edit)
+                        {
+                            <a @onclick="() => startEdit(data.Id)">Editar</a>
+                        }
+                        else
+                        {
+                            <a @onclick="() => saveEdit(data)" class="save">Guardar</a>
+                            <Popconfirm Title="Cancelar?"
+                                        OnConfirm="() => cancelEdit(data.Id)"
+                                        OkText="Si"
+                                        CancelText="No">
+                                <a>Cancelar</a>
+                            </Popconfirm>
+                        }
+                    </ActionColumn>
+                </ChildContent>
+            </Table>
+        </Row>
+        <Row Gutter="16">
+            <AntDesign.Col Span="24">
+                <FormItem Label="Forma de pago" LabelColSpan="24" WrapperColSpan="24">
+                    <Select DataSource="@formaPago"
+                            @bind-Value="@context.FormaPago"
+                            ValueName="@nameof(Person.Value)"
                             LabelName="@nameof(Person.Name)"
-                            ValueName="@nameof(Person.Name)">
+                            Style="width:120px">
                     </Select>
-                }
-            </Column>
-            <Column TData="string" Title="Cantidad">
-                @if (!editCache[data.Clave].edit)
-                {
-                    @data.Cantidad
-                }
-                else
-                {
-                    <AntDesign.InputNumber @bind-Value="editCache[data.Clave].data.Cantidad" />
-                }
-            </Column>
-            <Column TData="string" Title="Precio Unitario">
-                @if (!editCache[data.Clave].edit)
-                {
-                    @data.Precio
-                }
-                else
-                {
-                    <Input @bind-Value="editCache[data.Clave].data.Precio" />
-                }
-            </Column>
-            <Column TData="string" Title="Subtotal">
-                @if (!editCache[data.Clave].edit)
-                {
-                    @data.SubTotal
-                }
-                else
-                {
-                    <Input @bind-Value="editCache[data.Clave].data.SubTotal" />
-                }
-            </Column>
-            <Column TData="string" Title="%IVA">
-                @if (!editCache[data.Clave].edit)
-                {
-                    @data.IVA
-                }
-                else
-                {
-                    <Input @bind-Value="editCache[data.Clave].data.IVA" />
-                }
-            </Column>
-            <Column TData="string" Title="Total con IVA">
-                @if (!editCache[data.Clave].edit)
-                {
-                    @data.TotalIVA
-                }
-                else
-                {
-                    <Input @bind-Value="editCache[data.Clave].data.TotalIVA" />
-                }
-            </Column>
-            <ActionColumn Title="Acciones">
-                @if (!editCache[data.Clave].edit)
-                {
-                    <a @onclick="() => startEdit(data.Clave)">Editar</a>
-                }
-                else
-                {
-                    <a @onclick="() => saveEdit(data.Clave)" class="save">Guardar</a>
-                    <Popconfirm Title="Cancelar?"
-                                OnConfirm="() => cancelEdit(data.Clave)"
-                                OkText="Si"
-                                CancelText="No">
-                        <a>Cancelar</a>
-                    </Popconfirm>
-                }
-            </ActionColumn>
-        </ChildContent>
-    </Table>
-
-
-    <FormItem Label="Subtotal">
-        <Input @bind-Value="@context.Subtotal" Disabled="true" />
-    </FormItem>
-    <FormItem Label="Descuento">
-        <Input @bind-Value="@context.Number" />
-    </FormItem>
-    <FormItem Label="IVA">
-        <Input @bind-Value="@context.Iva" />
-    </FormItem>
-    <FormItem Label="Total">
-        <Input @bind-Value="@context.Total" Disabled="true" />
-    </FormItem>
-    <FormItem WrapperCol="GetButtonItemLayout()">
-        <Button @onclick="save" HtmlType="submit">
-            Guardar
-        </Button>
-        <Button @onclick="cancel" HtmlType="submit" Danger>
-            Cancelar
-        </Button>
-    </FormItem>
-</Form>
+                </FormItem>
+            </AntDesign.Col>
+        </Row>
+        <Row Gutter="16">
+            <AntDesign.Col Span="8">
+                
+                <FormItem Label="Subtotal" LabelColSpan="24" WrapperColSpan="24">
+                    @context.Subtotal
+                </FormItem>
+            </AntDesign.Col>
+            <AntDesign.Col Span="8">
+                <FormItem Label="I.V.A" LabelColSpan="24" WrapperColSpan="24">
+                    @context.Iva
+                </FormItem>
+            </AntDesign.Col>
+            <AntDesign.Col Span="8">
+                <FormItem Label="Total" LabelColSpan="24" WrapperColSpan="24">
+                    @context.Total
+                </FormItem>
+            </AntDesign.Col>
+        </Row>
+        <Row>
+            <FormItem WrapperColSpan="14" WrapperColOffset="4">
+                <Button @onclick="save" HtmlType="submit">
+                    Guardar
+                </Button>
+                <Button @onclick="cancel" HtmlType="submit" Danger>
+                    Cancelar
+                </Button>
+            </FormItem>
+        </Row>
+    </Form>
+</div>
+<Modal Title="@_title"
+       Visible="@_visible"
+       OnOk="() =>saveEdit(detalle)"
+       OnCancel="@HandleCancel"
+       DestroyOnClose="true">
+    <Form @ref="_formArt"
+          Model="@detalle"
+          LabelCol="new ColLayoutParam { Span = 6 }"
+          WrapperCol="new ColLayoutParam { Span = 18 }">
+        <FormItem Label="Articulo">
+            <Select Mode="default"
+                    DataSource="@_articulos"
+                    @bind-Value="detalle.Articulo"
+                    LabelName="@nameof(articulo.Nombre)"
+                    TItem="ArticuloModel"
+                    TItemValue="ArticuloModel"
+                    EnableSearch
+                    OnSelectedItemsChanged="OnSelectedItemsChangedHandler">
+                <SelectOptions>
+                    @foreach (var item in _articulos)
+                    {
+                        <SelectOption TItemValue="ArticuloModel" TItem="ArticuloModel" Value=@item Label=@item.Nombre />
+                    }
+                </SelectOptions>
+            </Select>
+        </FormItem>
+        <FormItem Label="Cantidad">
+            <Input @bind-Value="detalle.CantidadArticulos" />
+        </FormItem>
+    </Form>
+</Modal>
 <style>
     .save {
         margin-right: 8px;
@@ -162,75 +178,82 @@
 @code {
 
     [Parameter]
-    public int id { get; set; }
+    public string id { get; set; }
 
-    public class Model
-    {
-        public string Size { get; set; } = AntSizeLDSType.Small;
-        public string Input { get; set; } = "1447";
-        public string ClaveProveedor { get; set; } = "0001";
-        public string Subtotal { get; set; } = "772";
-        public string InputArea { get; set; } = "inputArea";
-        public string Iva { get; set; } = "115,80";
-        public string Total { get; set; } = "887,80";
-        public string Comentario { get; set; } = "Pedido: 4401 Via de embarque: Terrestre";
-        public string Cascader { get; set; } = "11";
-        public DateTime? DatePicker { get; set; } = DateTime.Now;
-        public DateTime?[] RangePicker { get; set; } = new DateTime?[] { DateTime.Now, DateTime.Now.AddDays(10) };
-        public double Number { get; set; } = 1;
-        public bool Switch { get; set; } = true;
-        public string Radio { get; set; } = "Beijing";
-        public string AutoComplete { get; set; }
-        public string Name { get; set; }
-        public IEnumerable<string> Names { get; set; } = Array.Empty<string>();
-        public string Layout { get; set; } = FormLayout.Horizontal;
-    }
-
-    private Model model = new Model();
-
-
-    private List<string> autoCompleteOptions = new List<string> { "Primary", "Junior", "Senior", "Undergraduate", "Master", "Doctor" };
-
-    record Person(string Name);
-    private List<Person> _persons = new List<Person>{
-            new Person("Metros"),
-            new Person("Kilos"),
-            new Person("Litros"),
-            new Person("Piezas"),
+    public bool editar = false;
+    private string selectArticulo;
+    private FacturaModel factura = new FacturaModel();
+    private List<Person> formaPago = new List<Person>{
+            new Person {Value = "Efectivo", Name = "Efectivo"},
+            new Person {Value = "Credito", Name = "Credito"},
+            new Person { Value = "Debito", Name = "Debito" }
         };
+    IDictionary<int, (bool edit, DetalleFacturaModel data)> editCache = new Dictionary<int, (bool edit, DetalleFacturaModel data)>();
+    DetalleFacturaModel[] listOfData = null;
+
+    int i = 0;
+    private ArticuloModel articulo = new ArticuloModel();
+    private DetalleFacturaModel detalle = new DetalleFacturaModel();
+    private List<ArticuloModel> _articulos = null;
+    List<FacturaModel> facturas = null;
+    AntDesign.Form<FacturaModel> _form;
+    AntDesign.Form<DetalleFacturaModel> _formArt;
+    string _title = "Agregar Articulo";
+    bool _visible = false;
+
+    class Person
+    {
+        public string Value { get; set; }
+        public string Name { get; set; }
+    }
 
     private void OnFinish(EditContext editContext)
     {
-        Console.WriteLine($"Success:{JsonSerializer.Serialize(model)}");
+        Console.WriteLine($"Success:{JsonSerializer.Serialize(factura)}");
+        Console.WriteLine($"Success:{JsonSerializer.Serialize(listOfData)}");
     }
 
     private void OnFinishFailed(EditContext editContext)
     {
-        Console.WriteLine($"Failed:{JsonSerializer.Serialize(model)}");
-    }
-
-    private ColLayoutParam GetFormLabelCol()
-    {
-        return model.Layout == FormLayout.Horizontal ? new ColLayoutParam { Span = "4" } : null;
-    }
-
-    private ColLayoutParam GetFormWrapperCol()
-    {
-        return model.Layout == FormLayout.Horizontal ? new ColLayoutParam { Span = "14" } : null;
-    }
-
-    private ColLayoutParam GetButtonItemLayout()
-    {
-        return model.Layout == FormLayout.Horizontal ? new ColLayoutParam { Span = "14", Offset = "4" } : null;
+        Console.WriteLine($"Failed:{JsonSerializer.Serialize(factura)}");
     }
 
     private async Task save()
     {
-        //if (id != 0)
-        //await JsRuntime.InvokeAsync<object>(identifier: "editSwal");
-        //else
-        await JsRuntime.InvokeAsync<object>("blazorInterop.saveSwal");
-        NavigationManager.NavigateTo("facturas");
+        if (_form.Validate())
+        {
+            if (editar == false)
+            {
+                if (facturas.Exists(x => x.Id == factura.Id))
+                {
+                    await JsRuntime.InvokeAsync<object>("blazorInterop.errorFormSwal", $"El id {factura.Id} ya existe");
+                }
+                else if (listOfData == null)
+                {
+                    await JsRuntime.InvokeAsync<object>("blazorInterop.errorFormSwal", $"Articulos no puede estar vacio");
+                }
+                else
+                {
+                    factura.DetalleFactura = listOfData.ToList<DetalleFacturaModel>();
+                    facturas.Add(factura);
+                    await localStorage.SetItemAsync<List<FacturaModel>>("Facturas", facturas);
+                    await JsRuntime.InvokeAsync<object>("blazorInterop.saveSwal");
+                    NavigationManager.NavigateTo("facturas");
+                }
+            }
+            else
+            {
+                factura.DetalleFactura = listOfData.ToList<DetalleFacturaModel>();
+                //facturas.Add(factura);
+                await localStorage.SetItemAsync<List<FacturaModel>>("Facturas", facturas);
+                await JsRuntime.InvokeAsync<object>("blazorInterop.saveSwal");
+                NavigationManager.NavigateTo("facturas");
+            }
+        }
+        else
+        {
+            await JsRuntime.InvokeAsync<object>("blazorInterop.errorFormSwal");
+        }
     }
 
     private async Task cancel()
@@ -239,53 +262,72 @@
         NavigationManager.NavigateTo("facturas");
     }
 
-    class ItemData
-    {
-        public string Clave { get; set; }
-        public string ClaveArti { get; set; }
-        public string Unidad { get; set; }
-        public int Cantidad { get; set; }
-        public double Precio { get; set; }
-        public double SubTotal { get; set; }
-        public double IVA { get; set; }
-        public double TotalIVA { get; set; }
-    };
-
-    IDictionary<string, (bool edit, ItemData data)> editCache = new Dictionary<string, (bool edit, ItemData data)>();
-    ItemData[] listOfData = { };
-
-    int i = 0;
-
-    void startEdit(string id)
+    void startEdit(int id)
     {
         var data = editCache[id];
         data.edit = true;
         editCache[id] = data;
+        detalle = listOfData[id];
+        //updateEditCache();
+        _visible = true;
     }
 
-    void cancelEdit(string id)
+    void cancelEdit(int id)
     {
-        var data = listOfData.FirstOrDefault(item => item.Clave == id);
+        var data = listOfData.FirstOrDefault(item => item.Id == id);
         editCache[id] = new(false, data);
     }
 
-    void saveEdit(string id)
+    void saveEdit(DetalleFacturaModel deta)
     {
-        var data = listOfData.FirstOrDefault(item => item.Clave == id);
-        editCache[id] = new(false, data);
+        //Console.WriteLine(JsonSerializer.Serialize(deta));
+        Console.WriteLine(JsonSerializer.Serialize(i));
+        Console.WriteLine(listOfData);
+        if (listOfData == null) {
+            listOfData = listOfData.Append(deta);
+        }
+        else{
+            //si el editcahe.edit == true
+            //if (editCache[deta.Id].edit == true) { 
+
+            //}
+            //buscar detalle en listofdata
+            //actualizar el detalle
+            //if (deta.Id == 0)
+            if (editCache[deta.Id].edit == false)
+            {
+                deta.Id = i;
+                listOfData = listOfData.Append(deta);
+            }
+            //var data = listOfData.FirstOrDefault(item => item.Id == deta.Id);
+            //listOfData[data.Id] = deta;
+            detalle = new DetalleFacturaModel();
+            ///listOfData[detalle.Id] = data;
+        }
+        //var data = listOfData.FirstOrDefault(item => item.Id == deta.Id);
+        //editCache[deta.Id] = new(false, data);
+        updateEditCache();
+        _visible = false;
     }
 
     void updateEditCache()
     {
-        if (listOfData.Length > 0) {
-
-            for (i = 0; i < listOfData.Length - 1; i++)
+        double total = 0;
+        if (listOfData.Length > 0)
+        {
+            for (i = 0; i < listOfData.Length; i++)
             {
-                editCache[listOfData[i].Clave] = new(false, listOfData[i]);
+                editCache[listOfData[i].Id] = new(false, listOfData[i]);
+                total = total + listOfData[i].Subtotal;
             }
-            editCache[listOfData[listOfData.Length-1].Clave] = new(true, listOfData[listOfData.Length-1]);
+
+            factura.Subtotal = total;
+            factura.Iva = total * 0.16;
+            factura.Total = total + (total * 0.16);
 
         }
+
+        Console.WriteLine(i);
 
         /*listOfData.ForEach(item =>
         {
@@ -296,16 +338,44 @@
         });*/
     }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        _articulos = await localStorage.GetItemAsync<List<ArticuloModel>>("Articulos");
+        facturas = await localStorage.GetItemAsync<List<FacturaModel>>("Facturas");
         //listOfData = Enumerable.Range(0, 100).Select(i => new ItemData { Id = $"{i}", Name = $"Edrward {i}", Age = 32, Address = $"London Park no. {i}" }).ToArray();
-        updateEditCache();
+
+        if (id != null)
+        {
+            factura = facturas.Find(x => x.Id.Equals(id));
+            listOfData = factura.DetalleFactura.ToArray<DetalleFacturaModel>();
+            updateEditCache();
+            editar = true;
+        }
     }
 
     void addArticle()
     {
-        listOfData = listOfData.Append(new ItemData { Clave = $"{i}" });
-        updateEditCache();
-        i++;
+        //listOfData = listOfData.Append(new DetalleFacturaModel { Id = i, Articulo = new ArticuloModel { PrecioUnitario = 0 } });
+        //updateEditCache();
+        //detalle = listOfData.Last();
+        //detalle = new DetalleFacturaModel();
+        _visible = true;
+    }
+
+    private void OnSelectedItemsChangedHandler(IEnumerable<ArticuloModel> values)
+    {
+        Console.WriteLine($"selected: ${string.Join(",", values)}");
+    }
+
+    private void HandleOk(MouseEventArgs e, int id)
+    {
+        var data = listOfData.FirstOrDefault(item => item.Id == id);
+        editCache[id] = new(false, data);
+        _visible = false;
+    }
+
+    private void HandleCancel(MouseEventArgs e)
+    {
+        _visible = false;
     }
 }

@@ -2,6 +2,9 @@
 @using System.ComponentModel
 @using AntDesign.TableModels
 @inject IJSRuntime JsRuntime
+@using Models
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject NavigationManager NavigationManager
 
 <div class="col-sm-12" style="text-align:left;margin-top:10px;">
     <h3>Entradas de almacen</h3>
@@ -19,7 +22,7 @@
         </Select>
         </Col>
         <Col Span="9">
-        <Search EnterButton="true" OnSearch="buscar" @bind-Value="@txtValue" Placeholder="Buscar ubicación" />
+        <Search EnterButton="true" OnSearch="buscar" @bind-Value="@txtValue" Placeholder="Buscar factura" />
         </Col>
         <Col Span="3">
         <div style="text-align:right; width:87%;">
@@ -30,23 +33,26 @@
 </div>
 
 <Table @ref="table"
-       TItem="WeatherForecast"
-       DataSource="@forecasts"
+       TItem="FacturaModel"
+       DataSource="@facturas"
        Total="_total"
        @bind-PageIndex="_pageIndex"
        @bind-PageSize="_pageSize"
-       @bind-SelectedRows="selectedRows"
-       OnChange="OnChange">
-    <Selection Key="@(context.Id.ToString())" />
+       @bind-SelectedRows="selectedRows">
     <Column @bind-Field="@context.Id" Sortable />
-    <Column @bind-Field="@context.Date" Format="yyyy-MM-dd" Sortable />
-    <Column @bind-Field="@context.Articulo" Sortable />
-    <Column @bind-Field="@context.Cantidad" Sortable />
-    <Column @bind-Field="@context.Precio" Sortable />
-    <Column @bind-Field="@context.Total" Sortable />
+    <Column @bind-Field="@context.FechaFactura" Format="yyyy-MM-dd" Sortable />
+    <Column @bind-Field="@context.NombreProveedor" />
+    <Column @bind-Field="@context.Subtotal" />
+    <Column @bind-Field="@context.Iva" />
+    <Column @bind-Field="@context.Total" />
     <ActionColumn>
         <Space>
-            <a title="Eliminar" @onclick="()=>Delete(context.Id)">
+            <a title="Editar" @onclick="()=>Edit(context)">
+                <span class="oi oi-pencil"></span>
+            </a>
+        </Space>
+        <Space>
+            <a title="Eliminar" @onclick="()=>Delete(context)">
                 <span class="oi oi-trash"></span>
             </a>
         </Space>
@@ -58,9 +64,11 @@
 
 @using System.Text.Json;
 @code {
-    WeatherForecast[] forecasts;
+    /// <Mis_variables>
+    List<FacturaModel> facturas;
+    /// </Mis_variables>
 
-    IEnumerable<WeatherForecast> selectedRows;
+    IEnumerable<FacturaModel> selectedRows;
     ITable table;
 
     int _pageIndex = 1;
@@ -74,13 +82,27 @@
 
     protected override async Task OnInitializedAsync()
     {
-        forecasts = await GetForecastAsync(_pageIndex, _pageSize);
-        _total = 5;
+        //me quede en la inicializacion de las facturas
+        //facturas = await GetForecastAsync(_pageIndex, _pageSize);
+
+        facturas = await localStorage.GetItemAsync<List<FacturaModel>>("Facturas");
+        if (facturas == null)
+        {
+            facturas = new List<FacturaModel> {
+                new FacturaModel{ Id = "FAC-01", FechaFactura = new DateTime(2020,04,30), NombreProveedor = "Tort Olivier & Asociados", Comentarios = "Pedido: 4401", FormaPago ="Efectivo", Subtotal = 120.30 },
+                new FacturaModel{ Id = "FAC-02", FechaFactura = new DateTime(2020,04,30), NombreProveedor = "Tort Olivier & Asociados", Comentarios = "Pedido: 4401", FormaPago ="Efectivo", Subtotal = 120.30 },
+                new FacturaModel{ Id = "FAC-03", FechaFactura = new DateTime(2020,04,30), NombreProveedor = "Tort Olivier & Asociados", Comentarios = "Pedido: 4401", FormaPago ="Efectivo", Subtotal = 120.30 }
+            };
+        }
+
+        await localStorage.SetItemAsync<List<FacturaModel>>("Facturas", facturas);
+
+        _total = facturas.Count;
 
         _list = new List<Person>{
             new Person {Value = "Fecha", Name = "Fecha"},
-            new Person {Value = "Artículo", Name = "Artículo"},
-            new Person {Value = "Número factura", Name = "Número factura"}
+            new Person {Value = "Nombre proveedor", Name = "Nombre proveedor"},
+            new Person {Value = "Total", Name = "Total"}
         };
     }
 
@@ -91,73 +113,46 @@
         public bool IsDisabled { get; set; }
     }
 
-    public class WeatherForecast
+    private async Task Delete(FacturaModel item)
     {
-        [DisplayName("Número factura")]
-        public int Id { get; set; }
-
-        [DisplayName("Fecha")]
-        public DateTime? Date { get; set; }
-
-        public string Articulo { get; set; }
-
-        public int Cantidad { get; set; }
-
-        public double Precio { get; set; }
-
-        public double Total { get; set; }
-    }
-
-    private static readonly string[] Articulos = new[]
-    {
-        "Papel", "Lingotes", "Fierro", "Gas"
-    };
-
-    private static readonly int[] Cantidades = new[]
-    {
-        3, 2, 5, 7
-    };
-
-    public async Task OnChange(QueryModel<WeatherForecast> queryModel)
-    {
-        Console.WriteLine(JsonSerializer.Serialize(queryModel));
-    }
-
-    public Task<WeatherForecast[]> GetForecastAsync(int pageIndex, int pageSize)
-    {
-        var rng = new Random();
-        return Task.FromResult(Enumerable.Range((pageIndex - 1) * pageSize + 1, pageSize).Select(index =>
+        bool borrarItem;
+        borrarItem = await JsRuntime.InvokeAsync<bool>("blazorInterop.deleteSwal", item.Id);
+        if (borrarItem)
         {
-            var temperatureC = rng.Next(-20, 55);
-            return new WeatherForecast
-            {
-                Id = index,
-                Date = DateTime.Now.AddDays(index),
-                Articulo = Articulos[rng.Next(Articulos.Length)],
-                Cantidad = Cantidades[rng.Next(Cantidades.Length)],
-                Precio = 30,
-                Total = 60
-
-            };
-        }).ToArray());
+            facturas.Remove(item);
+            await localStorage.SetItemAsync<List<FacturaModel>>("Facturas", facturas);
+            _total = facturas.Count;
+        }
     }
 
-    public void RemoveSelection(int id)
+    private async Task Edit(FacturaModel item)
     {
-        var selected = selectedRows.Where(x => x.Id != id);
-        selectedRows = selected;
-    }
-
-    private async Task Delete(int id)
-    {
-        await JsRuntime.InvokeVoidAsync("blazorInterop.deleteSwal");
-        forecasts = forecasts.Where(x => x.Id != id).ToArray();
-        _total = forecasts.Length;
+        await localStorage.SetItemAsync<List<FacturaModel>>("Facturas", facturas);
+        NavigationManager.NavigateTo($"editarfactura/{item.Id}");
     }
 
     private async Task buscar()
     {
-        await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Bucando...{txtValue}");
-        //await JsRuntime.InvokeAsync<Object>(identifier: "buscarSwal");
+        facturas = await localStorage.GetItemAsync<List<FacturaModel>>("Facturas");
+
+        if (txtValue != null)
+        {
+            switch (_selectedValue1)
+            {
+                case "Fecha":
+                    facturas = facturas.FindAll(x => x.FechaFactura.Equals(txtValue));
+                    break;
+                case "Nombre proveedor":
+                    facturas = facturas.FindAll(x => x.NombreProveedor.Contains(txtValue, StringComparison.CurrentCultureIgnoreCase));
+                    break;
+                case "Total":
+                    facturas = facturas.FindAll(x => x.Total == Convert.ToDouble(txtValue));
+                    break;
+                default:
+                    await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Selecciona un filtro...");
+                    break;
+            }
+        }
+        await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Buscando...{txtValue}");
     }
 }
