@@ -81,6 +81,7 @@
                         @if (!editCache[data.Id].edit)
                         {
                             <a @onclick="() => startEdit(data.Id)">Editar</a>
+                            <a @onclick="() => deleteDetalle(data.Id)">Eliminar</a>
                         }
                         else
                         {
@@ -272,6 +273,16 @@
         _visible = true;
     }
 
+    void deleteDetalle(int id)
+    {
+        var data = editCache[id];
+        data.edit = true;
+        editCache[id] = data;
+        listOfData = listOfData.Remove(listOfData[id]);
+        updateEditCache();
+        //_visible = true;
+    }
+
     void cancelEdit(int id)
     {
         var data = listOfData.FirstOrDefault(item => item.Id == id);
@@ -287,25 +298,13 @@
             listOfData = listOfData.Append(deta);
         }
         else{
-            //si el editcahe.edit == true
-            //if (editCache[deta.Id].edit == true) { 
-
-            //}
-            //buscar detalle en listofdata
-            //actualizar el detalle
-            //if (deta.Id == 0)
             if (editCache[deta.Id].edit == false)
             {
                 deta.Id = i;
                 listOfData = listOfData.Append(deta);
             }
-            //var data = listOfData.FirstOrDefault(item => item.Id == deta.Id);
-            //listOfData[data.Id] = deta;
-            detalle = new DetalleFacturaModel();
-            ///listOfData[detalle.Id] = data;
         }
-        //var data = listOfData.FirstOrDefault(item => item.Id == deta.Id);
-        //editCache[deta.Id] = new(false, data);
+        detalle = new DetalleFacturaModel();
         updateEditCache();
         _visible = false;
     }
@@ -318,6 +317,7 @@
             for (i = 0; i < listOfData.Length; i++)
             {
                 editCache[listOfData[i].Id] = new(false, listOfData[i]);
+                listOfData[i].Id = i;
                 total = total + listOfData[i].Subtotal;
             }
 

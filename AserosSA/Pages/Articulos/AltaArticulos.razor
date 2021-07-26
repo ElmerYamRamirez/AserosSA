@@ -170,6 +170,7 @@
         }
 
         public void OnFinishFailed() { }
+
         public void OnFinish() { }
 
         public async Task Save()
@@ -212,7 +213,6 @@
             }
             Console.WriteLine(JsonSerializer.Serialize(Articulo));
         }
-
 
         public async Task cancel()
         {

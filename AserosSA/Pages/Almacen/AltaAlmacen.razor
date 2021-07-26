@@ -103,7 +103,7 @@
 
             almacenes = await localStorage.GetItemAsync<List<AlmacenModel>>("Almacenes");
 
-            if (!(id == null))
+            if (id != null)
             {
                 Almacen = almacenes.Find(x => x.Id.Equals(id));
                 editar = true;
