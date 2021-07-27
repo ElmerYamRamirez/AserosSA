@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Mvc.RazorPages;
+//using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.JSInterop;
 
 namespace Models
 {
-    class ReportModel : PageModel
+    class ReportModel
     {
         public int ReporteId { get; set; }
         public string Articulo { get; set; }

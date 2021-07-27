@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using AserosSA.Reporte;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.JSInterop;
 using OfficeOpenXml;
@@ -31,11 +30,11 @@ namespace AserosSA.Data
                     PuntoReorden = "10"+i
                 });
             }
-            RptExistenciasAlmacen oRptExistenciasAlmacen = new RptExistenciasAlmacen();
+            //RptExistenciasAlmacen oRptExistenciasAlmacen = new RptExistenciasAlmacen();
             js.InvokeAsync<Report>(
                 "saveAsFile",
-                "ReporteExistenciasAlmacen.pdf",
-                Convert.ToBase64String(oRptExistenciasAlmacen.Report(oReports))
+                "ReporteExistenciasAlmacen.pdf", ""
+                //Convert.ToBase64String(oRptExistenciasAlmacen.Report(oReports))
             );
         }
 
