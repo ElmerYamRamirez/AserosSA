@@ -9,7 +9,7 @@ namespace Models
 {
     public class FacturaModel : IValidatableObject
     {
-        [Required(ErrorMessage = "El folio es requerida")]
+        [Required(ErrorMessage = "El folio es requerido")]
         public string Id { get; set; }
 
         [Required(ErrorMessage = "La fecha es requerido")]

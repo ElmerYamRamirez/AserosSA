@@ -151,10 +151,11 @@
         <FormItem Label="Articulo">
             <Select Mode="default"
                     DataSource="@_articulos"
-                    @bind-Value="detalle.Articulo"
-                    LabelName="@nameof(articulo.Nombre)"
+                    @bind-Value="context.Articulo"
+                    LabelName="@nameof(detalle.Articulo.Nombre)"
                     TItem="ArticuloModel"
                     TItemValue="ArticuloModel"
+                    DefaultValue="context.Articulo"
                     EnableSearch
                     OnSelectedItemsChanged="OnSelectedItemsChangedHandler">
                 <SelectOptions>
@@ -194,7 +195,11 @@
 
     int i = 0;
     private ArticuloModel articulo = new ArticuloModel();
+    //variables de detallearticulo
     private DetalleFacturaModel detalle = new DetalleFacturaModel();
+    string nombreDetalle;
+    int cantidadDetalle;
+    //variables de articulos
     private List<ArticuloModel> _articulos = null;
     List<FacturaModel> facturas = null;
     AntDesign.Form<FacturaModel> _form;
@@ -269,18 +274,24 @@
         data.edit = true;
         editCache[id] = data;
         detalle = listOfData[id];
+        Console.WriteLine($"Success:{JsonSerializer.Serialize(detalle.Articulo)}");
         //updateEditCache();
+        nombreDetalle = detalle.Articulo.Nombre;
+        cantidadDetalle = detalle.CantidadArticulos;
         _visible = true;
     }
 
-    void deleteDetalle(int id)
+    async Task deleteDetalle(int id)
     {
+        bool borrarItem;
         var data = editCache[id];
-        data.edit = true;
         editCache[id] = data;
-        listOfData = listOfData.Remove(listOfData[id]);
-        updateEditCache();
-        //_visible = true;
+        borrarItem = await JsRuntime.InvokeAsync<bool>("blazorInterop.deleteSwal", id);
+        if (borrarItem)
+        {
+            listOfData = listOfData.Remove(listOfData[id]);
+            updateEditCache();
+        }
     }
 
     void cancelEdit(int id)
@@ -289,24 +300,31 @@
         editCache[id] = new(false, data);
     }
 
-    void saveEdit(DetalleFacturaModel deta)
+    async Task saveEdit(DetalleFacturaModel deta)
     {
-        //Console.WriteLine(JsonSerializer.Serialize(deta));
-        Console.WriteLine(JsonSerializer.Serialize(i));
-        Console.WriteLine(listOfData);
-        if (listOfData == null) {
-            listOfData = listOfData.Append(deta);
-        }
-        else{
-            if (editCache[deta.Id].edit == false)
+        if (_formArt.Validate()) {
+            if (listOfData == null)
             {
-                deta.Id = i;
                 listOfData = listOfData.Append(deta);
             }
+            else
+            {
+                if (editCache[deta.Id].edit == false)
+                {
+                    deta.Id = i;
+                    listOfData = listOfData.Append(deta);
+                }
+            }
+
+            detalle = new DetalleFacturaModel();
+            updateEditCache();
+            _visible = false;
         }
-        detalle = new DetalleFacturaModel();
-        updateEditCache();
-        _visible = false;
+        else
+        {
+            await JsRuntime.InvokeAsync<object>("blazorInterop.errorFormSwal");
+        }
+
     }
 
     void updateEditCache()
@@ -377,5 +395,9 @@
     private void HandleCancel(MouseEventArgs e)
     {
         _visible = false;
+        var data = editCache[detalle.Id];
+        data.edit = false;
+        editCache[detalle.Id] = data;
+        detalle = new DetalleFacturaModel();
     }
 }

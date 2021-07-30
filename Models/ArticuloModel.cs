@@ -10,7 +10,7 @@ namespace Models
     public class ArticuloModel : IValidatableObject
     {
         [RegularExpression(@"^ART-[0-9]{2}",
-         ErrorMessage = "Caracteres no permitidos.ALM-XX-00")]
+         ErrorMessage = "Caracteres no permitidos.ART-00")]
         [Required(ErrorMessage = "La clave es requerida")]
         public string Id { get; set; }
 
