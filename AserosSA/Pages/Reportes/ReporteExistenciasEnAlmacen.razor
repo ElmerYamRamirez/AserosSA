@@ -1,205 +1,325 @@
 ﻿@page "/reporteEA"
 @inject IJSRuntime JsRuntime
-@using System.ComponentModel
 @using AntDesign.TableModels
 @using Data
+@using Models
+@inject NavigationManager NavigationManager
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@using OfficeOpenXml;
 
 
-<div class="col-sm-12" style="text-align:left; margin-top:10px;">
-    <h3>Reporte de Existencias en Almacen</h3>
-</div>
-<div>
-    <Row Style="margin-bottom:10px;" Justify="end">
-        <Col Span="3">
-        <Select DataSource="@_list"
-                @bind-Value="@_selectedValue1"
-                ValueName="@nameof(Almacen.Value)"
-                LabelName="@nameof(Almacen.Name)"
-                DisabledName="@nameof(Almacen.IsDisabled)"
-                Style="width:120px"
-                OnSelectedItemChanged="OnSelectedItemChangedHandler">
-        </Select>
-        </Col>
-        <Col Span="9">
-        <Search EnterButton="true" OnSearch="buscar" @bind-Value="@txtValue" Placeholder="Unidad" />
-        </Col>
-    </Row>
-</div>
+    <div class="col-sm-12" style="text-align:left; margin-top:10px;">
+        <h3>Reporte de Existencias en Almacen</h3>
+    </div>
+    <!--<div>
+        <Row Style="margin-bottom:10px;" Justify="end">
+            <Col Span="3">
+            <Select DataSource="@_list"
+                    @bind-Value="@_selectedValue1"
+                    ValueName="@nameof(Almacen.Value)"
+                    LabelName="@nameof(Almacen.Name)"
+                    DisabledName="@nameof(Almacen.IsDisabled)"
+                    Style="width:120px"
+                    OnSelectedItemChanged="OnSelectedItemChangedHandler">
+            </Select>
+            </Col>
+            <Col Span="9">
+            <Search EnterButton="true" OnSearch="buscar" @bind-Value="@txtValue" Placeholder="Unidad" />
+            </Col>
+        </Row>
+    </div>-->
 
 
-<Table @ref="table"
-       TItem="Unidades"
-       DataSource="@unidades"
-       Total="_total"
-       @bind-PageIndex="_pageIndex"
-       @bind-PageSize="_pageSize"
-       @bind-SelectedRows="selectedRows">
+    <Table @ref="table"
+           TItem="FacturaModel"
+           DataSource="@unidades"
+           Total="_total"
+           @bind-PageIndex="_pageIndex"
+           @bind-PageSize="_pageSize"
+           @bind-SelectedRows="selectedRows">
 
-    <Selection Key="@(context.ClaveArticulo.ToString())" />
+        <Selection Key="@(context.Id)" />
 
-    <Column @bind-Field="@context.ClaveArticulo" Sortable />
-    <Column @bind-Field="@context.Articulo" Sortable />
-    <Column @bind-Field="@context.Marca" Sortable />
-    <Column @bind-Field="@context.DsconUnidad" Sortable />
-    <Column @bind-Field="@context.DsconUbicacion" Sortable />
-    <Column @bind-Field="@context.Existencias" Sortable />
-    <Column @bind-Field="@context.Minimo" Sortable />
-    <Column @bind-Field="@context.PuntoReorden" Sortable />
-    <Column @bind-Field="@context.Maximo" Sortable />
-</Table>
+        <Column @bind-Field="@context.Id" Sortable />
+        <Column @bind-Field="@context.NombreProveedor" Sortable />
+        <Column @bind-Field="@context.FormaPago" Sortable />
+        <Column @bind-Field="@context.Iva" Sortable />
+        <Column @bind-Field="@context.DetalleFactura" Sortable />
+    </Table>
 
-<br />
-<p>Página: @_pageIndex | Registros: @_pageSize | Total: @_total</p>
+    <br />
+    <p>Página: @_pageIndex | Registros: @_pageSize | Total: @_total</p>
 
-<div class="col-sm-12" style="text-align:right; margin-top:10px;">
-    <Button Type="primary" @onclick="GeneratePDFFile">Descargar Reporte</Button>
-</div>
-<br />
+    <div class="col-sm-12" style="text-align:right; margin-top:10px;">
+        <Button Type="primary" @onclick="GeneratePDFFile">Descargar Reporte</Button>
+    </div>
+    <br />
 
 
 
-@code {
+    @code {
 
-    Unidades[] unidades;
+        List<FacturaModel> unidades = null;
 
-    IEnumerable<Unidades> selectedRows;
-    ITable table;
+        IEnumerable<FacturaModel> selectedRows;
+        ITable table;
 
-    int _pageIndex = 1;
-    int _pageSize = 5;
-    int _total = 0;
+        int _pageIndex = 1;
+        int _pageSize = 5;
+        int _total = 0;
 
-    protected override async Task OnInitializedAsync()
-    {
-        unidades = await GetForecastAsync(_pageIndex, _pageSize);
-        _total = unidades.Length;
-
-        _list = new List<Almacen>
+        protected override async Task OnInitializedAsync()
         {
+            //unidades = await GetForecastAsync(_pageIndex, _pageSize);
+            unidades = await localStorage.GetItemAsync<List<FacturaModel>>("Facturas");
+            //_total = unidades.Length;
+
+            _list = new List<Almacen>
+    {
             new Almacen {Value = "MPrima", Name = "Materia Prima"},
             new Almacen {Value = "Refacciones", Name = "Refacciones"},
             new Almacen {Value = "PVarios", Name = "Productos Varios"}
         };
-    }
+        }
 
-    public class Unidades
-    {
-        [DisplayName("Clave")]
-        public int ClaveArticulo { get; set; }
-
-        [DisplayName("Artículo")]
-        public string? Articulo { get; set; }
-
-        [DisplayName("Marca")]
-        public string Marca { get; set; }
-
-        [DisplayName("Unidad")]
-        public string DsconUnidad { get; set; }
-
-        [DisplayName("Ubicación")]
-        public string DsconUbicacion { get; set; }
-
-        [DisplayName("Existencias")]
-        public string Existencias { get; set; }
-
-        [DisplayName("Mínimo")]
-        public string Minimo { get; set; }
-
-        [DisplayName("Punto de Reorden")]
-        public string PuntoReorden { get; set; }
-
-        [DisplayName("Máximo")]
-        public string Maximo { get; set; }
-
-    }
-
-    private static readonly int[] ClaveArticulos = new[]
-    {
-        002185, 002180, 002175, 001940, 001946, 001960, 001966, 001950, 001956, 001970, 001975
-    };
-    private static readonly string[] Articulos = new[]
-    {
-        "FOCO LAMPARA FFT", "FOCO LAMPARA FCM", "FOCO LAMPARA CYX",  "ADAPTADORES TRIFASICOS", "EXTENSIÓN ELECTRICA DE 3 MT", "DESARMADORES",  "LAMPARA SORDA", "FLEXOMETRO 6 mx", "PILA AA", "PILA C", "PILA D"
-    };
-    private static readonly string[] Marcas = new[]
-    {
-        "SYLVANIA", "SYLVANIA", "SYLVANIA",  "EAGLE", "EXTEND", "STANLEY",  "RAYOBAC", "STANLEY", "DURACEL", "DURACEL", "DURACEL"
-    };
-    private static readonly string[] DsconUnidades = new[]
-    {
-        "PIEZA", "PIEZA", "PIEZA",  "PIEZA", "PIEZA", "JUEGOS",  "PIEZA", "PIEZA", "PIEZA", "PIEZA", "PIEZA"
-    };
-    private static readonly string[] Ubicaciones = new[]
-    {
-        "ESTANTE 16", "ESTANTE 19", "ESTANTE 16",  "ESTANTE 24", "ESTANTE 25", "ESTANTE 15",  "ESTANTE 25", "ESTANTE 15", "ESTANTE 18", "ESTANTE 18", "ESTANTE 18"
-    };
-    private static readonly string[] Existenciass = new[]
-    {
-        "1", "10", "6",  "20", "0", "0",  "0", "0", "0", "0", "32"
-    };
-    private static readonly string[] Minimos = new[]
-    {
-        "2", "2", "1", "2", "2", "2",  "2", "2", "5", "2", "10"
-    };
-    private static readonly string[] PuntosReorden = new[]
-    {
-        "6", "5", "2",  "6", "10", "3",  "3", "3", "15", "20", "15"
-    };
-    private static readonly string[] Maximos = new[]
-    {
-        "10", "10", "10",  "15", "20", "10",  "10", "10", "250", "50", "25"
-    };
-
-    public Task<Unidades[]> GetForecastAsync(int pageIndex, int pageSize)
-    {
-        var rng = new Random();
-        return Task.FromResult(Enumerable.Range((pageIndex - 1) * pageSize + 1, 11).Select(index =>
+        /*public class Unidades
         {
+            [DisplayName("Clave")]
+            public int ClaveArticulo { get; set; }
 
-            return new Unidades
+            [DisplayName("Nombre")]
+            public string? Articulo { get; set; }
+
+            [DisplayName("Marca")]
+            public string Marca { get; set; }
+
+            [DisplayName("Unidad")]
+            public string DsconUnidad { get; set; }
+
+            [DisplayName("Ubicación")]
+            public string DsconUbicacion { get; set; }
+
+            [DisplayName("Existencias")]
+            public string Existencias { get; set; }
+
+            [DisplayName("Mínimo")]
+            public string Minimo { get; set; }
+
+            [DisplayName("Punto de Reorden")]
+            public string PuntoReorden { get; set; }
+
+            [DisplayName("Máximo")]
+            public string Maximo { get; set; }
+
+        }
+
+        private static readonly int[] ClaveArticulos = new[]
+        {
+            002185, 002180, 002175, 001940, 001946, 001960, 001966, 001950, 001956, 001970, 001975
+        };
+        private static readonly string[] Articulos = new[]
+        {
+            "FOCO LAMPARA FFT", "FOCO LAMPARA FCM", "FOCO LAMPARA CYX",  "ADAPTADORES TRIFASICOS", "EXTENSIÓN ELECTRICA DE 3 MT", "DESARMADORES",  "LAMPARA SORDA", "FLEXOMETRO 6 mx", "PILA AA", "PILA C", "PILA D"
+        };
+        private static readonly string[] Marcas = new[]
+        {
+            "SYLVANIA", "SYLVANIA", "SYLVANIA",  "EAGLE", "EXTEND", "STANLEY",  "RAYOBAC", "STANLEY", "DURACEL", "DURACEL", "DURACEL"
+        };
+        private static readonly string[] DsconUnidades = new[]
+        {
+            "PIEZA", "PIEZA", "PIEZA",  "PIEZA", "PIEZA", "JUEGOS",  "PIEZA", "PIEZA", "PIEZA", "PIEZA", "PIEZA"
+        };
+        private static readonly string[] Ubicaciones = new[]
+        {
+            "ESTANTE 16", "ESTANTE 19", "ESTANTE 16",  "ESTANTE 24", "ESTANTE 25", "ESTANTE 15",  "ESTANTE 25", "ESTANTE 15", "ESTANTE 18", "ESTANTE 18", "ESTANTE 18"
+        };
+        private static readonly string[] Existenciass = new[]
+        {
+            "1", "10", "6",  "20", "0", "0",  "0", "0", "0", "0", "32"
+        };
+        private static readonly string[] Minimos = new[]
+        {
+            "2", "2", "1", "2", "2", "2",  "2", "2", "5", "2", "10"
+        };
+        private static readonly string[] PuntosReorden = new[]
+        {
+            "6", "5", "2",  "6", "10", "3",  "3", "3", "15", "20", "15"
+        };
+        private static readonly string[] Maximos = new[]
+        {
+            "10", "10", "10",  "15", "20", "10",  "10", "10", "250", "50", "25"
+        };
+
+        public Task<Unidades[]> GetForecastAsync(int pageIndex, int pageSize)
+        {
+            var rng = new Random();
+            return Task.FromResult(Enumerable.Range((pageIndex - 1) * pageSize + 1, 11).Select(index =>
             {
-                ClaveArticulo = ClaveArticulos[rng.Next(ClaveArticulos.Length)],
-                Articulo = Articulos[rng.Next(Articulos.Length)],
-                Marca = Marcas[rng.Next(Marcas.Length)],
-                DsconUnidad = DsconUnidades[rng.Next(DsconUnidades.Length)],
-                DsconUbicacion = Ubicaciones[rng.Next(Ubicaciones.Length)],
-                Existencias = Existenciass[rng.Next(Existenciass.Length)],
-                Minimo = Minimos[rng.Next(Minimos.Length)],
-                PuntoReorden = PuntosReorden[rng.Next(PuntosReorden.Length)],
-                Maximo = Maximos[rng.Next(Maximos.Length)]
-            };
-        }).ToArray());
+
+                return new Unidades
+                {
+                    ClaveArticulo = ClaveArticulos[rng.Next(ClaveArticulos.Length)],
+                    Articulo = Articulos[rng.Next(Articulos.Length)],
+                    Marca = Marcas[rng.Next(Marcas.Length)],
+                    DsconUnidad = DsconUnidades[rng.Next(DsconUnidades.Length)],
+                    DsconUbicacion = Ubicaciones[rng.Next(Ubicaciones.Length)],
+                    Existencias = Existenciass[rng.Next(Existenciass.Length)],
+                    Minimo = Minimos[rng.Next(Minimos.Length)],
+                    PuntoReorden = PuntosReorden[rng.Next(PuntosReorden.Length)],
+                    Maximo = Maximos[rng.Next(Maximos.Length)]
+                };
+            }).ToArray());
+        }*/
+
+
+        private string txtValue { get; set; }
+        private async Task buscar()
+        {
+            await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Bucando...{txtValue}");
+            //await JsRuntime.InvokeAsync<Object>(identifier: "buscarSwal");
+        }
+
+        List<Almacen> _list;
+        string _selectedValue1;
+
+        class Almacen
+        {
+            public string Value { get; set; }
+            public string Name { get; set; }
+            public bool IsDisabled { get; set; }
+        }
+
+        private void OnSelectedItemChangedHandler(Almacen value)
+        {
+            Console.WriteLine($"selected: ${value?.Name}");
+        }
+
+        private async void GeneratePDFFile()
+        {
+            await JsRuntime.InvokeAsync<object>(identifier: "swal", "Descargando Reporte...");
+
+            //Report report = new Report();
+            //report.GeneratePDF(JsRuntime);
+            GenerateExcel(JsRuntime);
+        }
+
+        public void GenerateExcel(IJSRuntime iJSRuntime)
+        {
+            byte[] fileContents;
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using (var package = new ExcelPackage())
+            {
+                var workSheet = package.Workbook.Worksheets.Add("PuntoReorden");
+
+                #region Header Row
+                workSheet.Cells[1, 1].Value = "ID";
+                workSheet.Cells[1, 1].Style.Font.Size = 12;
+                workSheet.Cells[1, 1].Style.Font.Bold = true;
+                workSheet.Cells[1, 1].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Hair;
+
+                workSheet.Cells[1, 2].Value = "Articulo";
+                workSheet.Cells[1, 2].Style.Font.Size = 12;
+                workSheet.Cells[1, 2].Style.Font.Bold = true;
+                workSheet.Cells[1, 2].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Hair;
+
+                workSheet.Cells[1, 3].Value = "Marca";
+                workSheet.Cells[1, 3].Style.Font.Size = 12;
+                workSheet.Cells[1, 3].Style.Font.Bold = true;
+                workSheet.Cells[1, 3].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Hair;
+
+                workSheet.Cells[1, 4].Value = "Almacen";
+                workSheet.Cells[1, 4].Style.Font.Size = 12;
+                workSheet.Cells[1, 4].Style.Font.Bold = true;
+                workSheet.Cells[1, 4].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Hair;
+
+                workSheet.Cells[1, 5].Value = "Unidad";
+                workSheet.Cells[1, 5].Style.Font.Size = 12;
+                workSheet.Cells[1, 5].Style.Font.Bold = true;
+                workSheet.Cells[1, 5].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Hair;
+
+                workSheet.Cells[1, 6].Value = "Cantidad";
+                workSheet.Cells[1, 6].Style.Font.Size = 12;
+                workSheet.Cells[1, 6].Style.Font.Bold = true;
+                workSheet.Cells[1, 6].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Hair;
+
+                #endregion
+
+                #region Body 1st Row
+
+                for (int index = 1; index <= unidades.Count(); index++)
+                {
+                    if (unidades[index - 1].DetalleFactura != null)
+                    {
+                        workSheet.Cells[index + 1, 1].Value = unidades[index - 1].DetalleFactura[0].Articulo.Id;
+                        workSheet.Cells[index + 1, 1].Style.Font.Size = 12;
+                        workSheet.Cells[index + 1, 1].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Hair;
+
+                        workSheet.Cells[index + 1, 2].Value = unidades[index - 1].DetalleFactura[0].Articulo.Nombre;
+                        workSheet.Cells[index + 1, 2].Style.Font.Size = 12;
+                        workSheet.Cells[index + 1, 2].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Hair;
+
+                        workSheet.Cells[index + 1, 3].Value = unidades[index - 1].DetalleFactura[0].Articulo.Marca;
+                        workSheet.Cells[index + 1, 3].Style.Font.Size = 12;
+                        workSheet.Cells[index + 1, 3].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Hair;
+
+                        workSheet.Cells[index + 1, 4].Value = unidades[index - 1].DetalleFactura[0].Articulo.Almacen.Descripcion;
+                        workSheet.Cells[index + 1, 4].Style.Font.Size = 12;
+                        workSheet.Cells[index + 1, 4].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Hair;
+
+                        workSheet.Cells[index + 1, 5].Value = unidades[index - 1].DetalleFactura[0].Articulo.Unidad.Descripcion;
+                        workSheet.Cells[index + 1, 5].Style.Font.Size = 12;
+                        workSheet.Cells[index + 1, 5].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Hair;
+
+                        workSheet.Cells[index + 1, 6].Value = unidades[index - 1].DetalleFactura[0].Articulo.Cantidad;
+                        workSheet.Cells[index + 1, 6].Style.Font.Size = 12;
+                        workSheet.Cells[index + 1, 6].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Hair;
+                    }
+
+                }
+                /*workSheet.Cells[2, 1].Value = "FOCO LAMPARA FCM";
+                workSheet.Cells[2, 1].Style.Font.Size = 12;
+                workSheet.Cells[2, 1].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Hair;
+
+                workSheet.Cells[2, 2].Value = "2";
+                workSheet.Cells[2, 2].Style.Font.Size = 12;
+                workSheet.Cells[2, 2].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Hair;
+
+                workSheet.Cells[2, 3].Value = "10";
+                workSheet.Cells[2, 3].Style.Font.Size = 12;
+                workSheet.Cells[2, 3].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Hair;
+
+                workSheet.Cells[2, 4].Value = "3";
+                workSheet.Cells[2, 4].Style.Font.Size = 12;
+                workSheet.Cells[2, 4].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Hair;*/
+
+                #endregion
+
+                /*#region Body 2nd Row
+                workSheet.Cells[3, 1].Value = "PILA C";
+                workSheet.Cells[3, 1].Style.Font.Size = 12;
+                workSheet.Cells[3, 1].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Hair;
+
+                workSheet.Cells[3, 2].Value = "2";
+                workSheet.Cells[3, 2].Style.Font.Size = 12;
+                workSheet.Cells[3, 2].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Hair;
+
+                workSheet.Cells[3, 3].Value = "10";
+                workSheet.Cells[3, 3].Style.Font.Size = 12;
+                workSheet.Cells[3, 3].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Hair;
+
+                workSheet.Cells[3, 4].Value = "5";
+                workSheet.Cells[3, 4].Style.Font.Size = 12;
+                workSheet.Cells[3, 4].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Hair;
+
+                #endregion*/
+
+                fileContents = package.GetAsByteArray();
+            }
+            iJSRuntime.InvokeAsync<Report>(
+                "saveAsFile",
+                "Report Punto de Reorden.xlsx",
+                Convert.ToBase64String(fileContents)
+                );
+        }
     }
-
-
-    private string txtValue { get; set; }
-    private async Task buscar()
-    {
-        await JsRuntime.InvokeAsync<object>(identifier: "swal", $"Bucando...{txtValue}");
-        //await JsRuntime.InvokeAsync<Object>(identifier: "buscarSwal");
-    }
-
-    List<Almacen> _list;
-    string _selectedValue1;
-
-    class Almacen
-    {
-        public string Value { get; set; }
-        public string Name { get; set; }
-        public bool IsDisabled { get; set; }
-    }
-
-    private void OnSelectedItemChangedHandler(Almacen value)
-    {
-        Console.WriteLine($"selected: ${value?.Name}");
-    }
-
-    private async void GeneratePDFFile()
-    {
-        await JsRuntime.InvokeAsync<object>(identifier: "swal", "Descargando Reporte...");
-
-        Report report = new Report();
-        report.GeneratePDF(JsRuntime);
-    }
-}
 
