@@ -270,7 +270,7 @@
                         workSheet.Cells[index + 1, 5].Style.Font.Size = 12;
                         workSheet.Cells[index + 1, 5].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Hair;
 
-                        workSheet.Cells[index + 1, 6].Value = unidades[index - 1].DetalleFactura[0].Articulo.Cantidad;
+                        workSheet.Cells[index + 1, 6].Value = unidades[index - 1].DetalleFactura[0].CantidadArticulos;
                         workSheet.Cells[index + 1, 6].Style.Font.Size = 12;
                         workSheet.Cells[index + 1, 6].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Hair;
                     }

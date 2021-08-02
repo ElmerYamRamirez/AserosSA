@@ -5,44 +5,70 @@
 @inject NavigationManager NavigationManager
 @inject HttpClient HttpClient
 @inject IJSRuntime JsRuntime
+@using Models
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
 
 <div class="col-sm-12" style="text-align:left;margin-top:10px;">
     <h3>Grafica de Consumo por Unidad</h3>
 </div>
-<Tabs ActiveKeyChanged="OnTabChanged">
+<!--<Tabs ActiveKeyChanged="OnTabChanged">
     <TabPane Key="1">
         <ChildContent>
             <AntDesign.Charts.Column Data="data1" Config="config1" />
         </ChildContent>
     </TabPane>
-</Tabs>
+</Tabs>-->
+@if (render)
+{
+    <AntDesign.Charts.Column Data="data1" Config="config1" />
+}
 <div class="col-sm-12" style="text-align:center;margin-top:10px;">
     <h5>Articulos</h5>
 </div>
 
-<div class="col-sm-12" style="text-align:right; margin-top:10px;">
+<!--<div class="col-sm-12" style="text-align:right; margin-top:10px;">
     <Button Type="primary" @onclick="downloadMessage">Descargar</Button>
-</div>
+</div>-->
 
-@code{ IChartComponent chart5;
+@code{ 
+    IChartComponent chart5;
 
     IChartComponent chart6;
+    List<FacturaModel> facs = null;
 
-
+    object[] data1 = new object[1];
+    public bool render = false;
 
     protected override async Task OnInitializedAsync()
     {
+        facs = await localStorage.GetItemAsync<List<FacturaModel>>("Facturas");
+
+        data1 = new object[facs.Count()];
+        for (int i = 0; i < facs.Count(); i++)
+        {
+            if (facs[i].DetalleFactura != null)
+            {
+                data1[i] = new
+                {
+                    type = facs[i].DetalleFactura[0].Articulo.Nombre,
+                    sales = facs[i].DetalleFactura[0].CantidadArticulos
+                };
+            }
+
+        }
+        render = true;
+
         await base.OnInitializedAsync();
     }
 
-    private async void OnTabChanged(string activeKey)
+    private void OnTabChanged(string activeKey)
     {
     }
 
     #region  #endregion graficaUnidad
 
-    object[] data1 =
-{
+    /*object[] data1 = new object[]
+    {
         new
         {
             type = "Lamiacion",
@@ -83,7 +109,7 @@
             type = "Acondicionado",
             sales = 70
         }
-    };
+    };*/
 
     #endregion  #endregion graficaUnidad
 
